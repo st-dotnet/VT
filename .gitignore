@@ -1,0 +1,12 @@
+/VT.Common/bin
+/VT.Common/obj
+/VT.Data/bin
+/VT.Data/obj
+/VT.Services/bin
+/VT.Services/obj
+/VT.Web/bin
+/VT.Web/obj
+/.vs
+/packages
+/VT.QuickBooks/bin
+/VT.QuickBooks/obj
