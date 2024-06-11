@@ -1,0 +1,402 @@
+﻿@model VT.Web.Models.SplashMerchantModel
+
+@{
+    ViewBag.Title = "Splash";
+    var model = Model;
+    Layout = "~/Views/Shared/LoggedInLayout.cshtml";
+    var defaultMCC = ViewBag.DeafultMCC;
+}
+
+@section PageLevelStyles{
+
+    @Styles.Render("~/plugins/switcheryStyles")
+    @Styles.Render("~/plugins/jasnyBootstrapStyles")
+    <link href="~/Content/bootstrap-datepickercss.css" rel="stylesheet" />
+}
+@section PageLevelScripts{
+
+    @Scripts.Render("~/plugins/validate")
+    @Scripts.Render("~/plugins/iCheck")
+    @Scripts.Render("~/plugins/switchery")
+    @Scripts.Render("~/plugins/jasnyBootstrap")
+    <script src="@Url.Content("~/Scripts/bootstrap-datepicker.js")"></script>
+    <script src="~/Scripts/jquery.maskMoney.js"></script>
+    <script src="@Url.Content("~/Scripts/app/splash-edit.js")"></script>
+    <script type="text/javascript">
+        $(function () {
+            $('.datepicker').datepicker({
+                autoclose: true
+            });
+        });
+ 
+        $('.phone').inputmask({
+            mask: '(999) 999-9999'
+        });
+
+        $('.SSN').inputmask({
+            mask: '999-99-9999'
+        });
+
+        $('.mcc').inputmask({
+            mask: '9999'
+        });
+
+        $("#AnnualCCSales").maskMoney({ prefix: ' ', allowNegative: false, thousands: ',', precision: '0', affixesStay: false });
+
+        $('.bankaccountnumber').inputmask({
+            mask: '9999?99999999999999'
+        });
+
+        $('.routingnumber').inputmask({
+            mask: '999999999'
+        });
+
+        // hide datepicker on selection
+        $('input.datepicker').on('keyup', function () { 
+            $(this).datepicker('hide');
+        });
+        $('input.datepicker').on('changeDate', function (ev) {
+            $(this).datepicker('hide');
+        });
+        
+        $(document).ready(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+
+    </script>
+
+}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-10">
+        <h2>Gateway Information</h2>
+    </div>
+    <div class="col-lg-2">
+    </div>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h3><label style="color:#1ab394;"><b>Merchant Account Details</b></label></h3>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <form id="updateMerchantForm" action="@Url.Action("UpdateMerchant", "Splash")" class="form-horizontal" method="POST" role="form">
+                            @Html.HiddenFor(x => x.EntityLoginId)
+                            @*@Html.HiddenFor(x => x.Established)*@
+                            @Html.HiddenFor(x => x.CompanyId)
+                            <h3 class="plr-15"><label style="color:#1ab394;"><b>Merchant </b></label></h3>
+                            <div class="hr-line-dashed"></div>
+                            <div class="col-lg-12">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-6 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Approximate Annual Sales</label>
+                                        </div>
+                                        <div class="col-lg-8">
+                                            <div class="input-group m-b">
+                                                <span class="input-group-addon"><i class="fa fa-usd" aria-hidden="true"></i></span>
+                                                @Html.TextBoxFor(x => x.AnnualCCSales, new { @class = "form-control small", placeholder = "Annual Sales" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <h3 class="plr-15"><label style="color:#1ab394;"><b>Business Entity</b></label></h3>
+                            <div class="hr-line-dashed"></div>
+                            <div class="col-lg-12">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Name</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.EntityName, new { @class = "form-control small", placeholder = "Name" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Email</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            <div class="input-group m-b">
+                                                @Html.TextBoxFor(x => x.EntityEmail, new { @class = "form-control small", placeholder = "Email" })
+                                                <span class="input-group-addon"><i class="fa fa-envelope" aria-hidden="true"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Credit Card Statement Descriptor&nbsp;<i class="fa fa-info" title="Enter the description to appear on your customer's credit card statement" aria-hidden="true"></i></label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                       
+                                            @Html.TextBoxFor(x => x.DBA, new { @class = "form-control small", placeholder = "Statement Descriptor" })
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Type</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.DropDownListFor(x => x.EntityType, ViewData["EntityTypes"] as IEnumerable<SelectListItem>, new { @class = "form-control small" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Address</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.EntityAddress1, new { @class = "form-control small", placeholder = "Address" })
+
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Phone</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.EntityPhone, new { @class = "form-control small phone", placeholder = "Phone" })
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>City</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.EntityCity, new { @class = "form-control small", placeholder = "City" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Website</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.EntityWebsite, new { @class = "form-control small", placeholder = "http://example.com" })
+
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>State</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.DropDownListFor(x => x.EntityState, ViewData["StateList"] as IEnumerable<SelectListItem>, new { @class = "form-control small" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Established&nbsp;<i class="fa fa-info" title="Enter the date your entity was established" aria-hidden="true"></i></label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            <input name="Established" id="fromdatetimepicker" type='text' style="cursor: pointer;   text-align: left;  font-weight: bold;" class="form-control datepicker date-top" readonly="readonly" value="@Model.Established" placeholder="Select a Date" />
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Zip</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.EntityZip, new { @class = "form-control small", placeholder = "Zip" })
+
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>MCC&nbsp;<i class="fa fa-info" title="Merchant Category Code - do not modify this value unless someone from our company told you to do so" aria-hidden="true"></i></label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.MerchantCategoryCode, new { @class = "form-control small mcc", @Value = defaultMCC })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Country</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.EntityCountry, new { @class = "form-control small", placeholder = "USA", @readonly = "readonly" })
+
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>
+                                                EIN
+                                                <i class="fa fa-info" title="Your entity's tax identification number. Use your SSN if you are a sole proprietor"></i>
+                                            </label>
+
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.EntityEIN, new { @class = "form-control small", placeholder = "Tax Identification Number" })
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <h3 class="plr-15">
+                                <label style="color:#1ab394;">
+                                    <b>Business Owner</b>
+                                </label>
+                            </h3>
+                            <div class="hr-line-dashed"></div>
+                            <div class="col-lg-12">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>First Name</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.MemberFirstName, new { @class = "form-control small", placeholder = "First Name" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Title&nbsp;(e.g. President)</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.MemberTitle, new { @class = "form-control small", placeholder = "Title" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Last Name</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.MemberLastName, new { @class = "form-control small", placeholder = "Last Name" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Email</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.MemberEmail, new { @class = "form-control small", placeholder = "Email" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Date Of Birth</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            <input name="MemberDateOfBirth" id="fromdatetimepicker" type='text' style="cursor: pointer;   text-align: left;  font-weight: bold;" class="form-control datepicker date-top" readonly="readonly" value="@Model.MemberDateOfBirth" placeholder="Select a Date" />
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>SSN</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.MemberSocialSecurityNumber, new { @class = "form-control small SSN", placeholder = "Security Number" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Driver's License</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.MemberDriverLicense, new { @class = "form-control small", placeholder = "Driver License" })
+
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Ownership</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            <div class="input-group m-b">
+                                                @Html.TextBoxFor(x => x.MemberOwnerShip, new { @class = "form-control small", type = "number", min = "1", max = "100", step = "1" })<span class="input-group-addon"><i class="fa fa-percent" aria-hidden="true"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Driver's License State</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.DropDownListFor(x => x.MemberDriverLicenseState, ViewData["StateList"] as IEnumerable<SelectListItem>, new { @class = "form-control small" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <h3 class="plr-15">
+                                <label style="color:#1ab394;">
+                                    <b>Account</b>
+                                </label>
+                            </h3>
+                            <div class="hr-line-dashed"></div>
+                            <div class="co-lg-12">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Account Number</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.CardOrAccountNumber, new { @class = "form-control small bankaccountnumber", placeholder = "Account Number" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Bank Routing Number</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.TextBoxFor(x => x.AccountsRoutingCode, new { @class = "form-control small routingnumber", placeholder = "Routing Code" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <label>Account Type</label>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            @Html.DropDownListFor(x => x.AccountsPaymentMethod, ViewData["AccountTypes"] as IEnumerable<SelectListItem>, new { @class = "form-control small" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="co-lg-12">
+                                <div class="modal-footer" style="padding-right: 90px;">
+                                    <button id="btnUpdateMerchant" type="submit" class="btn btn-primary">Save</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

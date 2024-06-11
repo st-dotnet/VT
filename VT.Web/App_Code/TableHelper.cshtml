@@ -1,0 +1,6 @@
+﻿@helper Address(string name, string address, string state, string zip, string email)
+{
+    @(name) <br />
+    @(string.Format("{0}, {1}", address,state)) <br />
+    @(string.Format("{0}, {1}", zip, email)) 
+}

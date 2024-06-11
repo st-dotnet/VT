@@ -1,0 +1,176 @@
+﻿@model VT.Services.DTOs.QBEntitiesRequestResponse.CustomerSynchronizationList
+
+@{
+    var isAnyUnmatched = Model.LinkedCustomers.FirstOrDefault(x => !x.LinkedSystemCustomer.IsMatch);
+    var style = (isAnyUnmatched != null) ? "none" : "inline-block";
+}
+<script>
+    $('.new-aco .accordion').find('.accordion-toggle').click(function () {
+        $(this).next().slideToggle('600');
+        $(".accordion-content").not($(this).next()).slideUp('600');
+    });
+    $('.accordion-toggle').on('click', function () {
+        $(this).toggleClass('active').siblings().removeClass('active');
+    });
+</script>
+
+<div class="new-aco">
+    <div class="accordion">
+        <h4 class="accordion-toggle active" style="text-align:left;"><b>Instructions</b></h4>
+        <div class="accordion-content" style="display: block; text-align:left;">
+            <p style="margin: 15px 15px 15px;">
+                <b>1)</b>&nbsp;Each row in the Linked Customers section must have a
+                <button type='button' class='btn btn-primary btn-xs' title="Employee Matching">
+                    <i class="fa fa-check" aria-hidden="true"></i>
+                </button> before saving the results since we want the data in the system and Quick books to match.
+            </p>
+            <p style="margin: 15px 15px 15px;">
+                <b>2)</b>&nbsp;Unlinked Customers are entities that exist in only the system, or Quick books. Some of these entities refer to the same customers and should be linked. To link them click on each entity and press the link button.
+            </p>
+        </div>
+
+        <h4 class="accordion-toggle" style="text-align:left"><b>Linked Customers</b></h4>
+        <div class="accordion-content" id="linkedCustomerPanel">
+            <table class="table" style="margin-bottom:0; text-align:left;">
+                <thead class="thead-inverse">
+                    <tr>
+                        <th width="40%" style="text-align: center;"><h3><b>System</b></h3></th>
+                        <th width="20%"></th>
+                        <th width="40%" style="text-align: center;"><h3><b>Quick Books</b></h3></th>
+                    </tr>
+                </thead>
+            </table>
+            <div style="overflow-y: scroll;height:  400px;">
+                @foreach (var item in Model.LinkedCustomers.OrderByDescending(x => x.LinkedSystemCustomer.SCEmail))
+                {
+                    var linkedSystemCustomer = item.LinkedSystemCustomer;
+                    var linkedQBCustomer = item.LinkedQBCustomer;
+                    var color = item.LinkedQBCustomer.IsMatch ? "bg-success" : "bg-danger";
+                    <div tabindex="-1" id="myDiv-@linkedSystemCustomer.SCCustomerId" class="changeColorDiv"
+                         data-customerid="@linkedSystemCustomer.SCCustomerId"
+                         data-ismatch="@item.LinkedQBCustomer.IsMatch">
+                        <div class="table-responsive @color" id="divClass-@linkedSystemCustomer.SCCustomerId">
+                            <table class="table" style="text-align:left;">
+                                <tbody>
+                                    <tr id="tblRow">
+                                        <td width="40%">
+                                            @linkedSystemCustomer.SCName<br />
+                                            @linkedSystemCustomer.SCAddress, @linkedSystemCustomer.SState &nbsp;
+                                            @linkedSystemCustomer.SCPostalCode
+                                            <br />
+                                            @linkedSystemCustomer.SCPhone<br />
+                                            @linkedSystemCustomer.SCEmail
+                                        </td>
+                                        <td width="20%" class="text-center">
+                                            <button type='button' data-editCustomerId="@linkedSystemCustomer.SCCustomerId"
+                                                    data-editQBCustomerId="@linkedSystemCustomer.QbCustomerId"
+                                                    class='btn btn-primary btn-sm editLinkedCustomer' title="Edit Customer">
+                                                <i class="fa fa-pencil-square" aria-hidden="true"></i>
+                                            </button>
+                                            <br />
+                                            <br />
+                                            <button type='button' class='btn btn-primary btn-sm unlinkCustomer' id="unlinkCustomer-@linkedSystemCustomer.SCCustomerId" title="Unlink Customer"
+                                                    data-unlinkCustomerId="@linkedSystemCustomer.SCCustomerId" data-unlinkqbCustomerId="@linkedSystemCustomer.QbCustomerId">
+                                                <i class="fa fa-chain-broken" aria-hidden="true"></i>
+                                            </button>
+                                        </td>
+                                        <td width="40%">
+                                            @linkedQBCustomer.SCName<br />
+                                            @linkedQBCustomer.SCAddress, @linkedQBCustomer.SState &nbsp;
+                                            @linkedQBCustomer.SCPostalCode
+                                            <br />
+                                            @linkedQBCustomer.SCPhone<br />
+                                            @linkedQBCustomer.SCEmail
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <hr style="margin-top:0px;margin-bottom:4px;" />
+                }
+            </div>
+        </div>
+        <h4 class="accordion-toggle" style="text-align:left"><b>Unlinked Customers</b></h4>
+        <div class="accordion-content">
+            <div class="box-back">
+                <table class="table" style="margin-bottom:0;text-align:left;">
+                    <thead class="thead-inverse">
+                        <tr>
+                            <th width="40%" style="text-align:left"><h3><b>System</b></h3></th>
+                            <th width="20%" style="text-align:left;text-align:center;"><a href="" class="btn btn-primary" style="display:none;" id="link-customers">Link</a></th>
+                            <th width="40%" style="text-align:left"><h3><b>Quick Books</b></h3></th>
+                        </tr>
+                    </thead>
+                </table>
+                <div style="overflow-y: scroll;height:400px; padding-top:20px;">
+                    <div class="">
+                        <div class="col-xs-12 col-sm-5 col-lg-5">
+                            <div tabindex="-1" class="alert-info divsystemSelected" style="color: #000;text-align:left">
+                                <div>
+                                    <ul style="text-align:left;">
+                                        <li style="list-style:none;"><br /></li>
+                                        <li style="list-style:none;"><br /></li>
+                                        <li style="list-style:none;padding-left: 60px;font-weight: bold;">Create New</li>
+                                        <li style="list-style:none;"><br /></li>
+                                        <li style="list-style:none;"><br /></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            @foreach (var systemCustomer in Model.UnlinkedSystemCustomers.OrderByDescending(x => x.SCEmail))
+                            {
+                                <div tabindex="-1" id="divSystemCustomer-@systemCustomer.SCCustomerId"
+                                     class="badge-warning-light divsystemCustomers"
+                                     data-customerid="@systemCustomer.SCCustomerId">
+                                    <div>
+                                        <ul style="text-align:left">
+                                            <li style="list-style:none;">@systemCustomer.SCName</li>
+                                            <li style="list-style:none;">@systemCustomer.SCAddress, &nbsp; @systemCustomer.SState</li>
+                                            <li style="list-style:none;">@systemCustomer.SCPostalCode</li>
+                                            <li style="list-style:none;">@systemCustomer.SCPhone</li>
+                                            <li style="list-style:none;">@systemCustomer.SCEmail</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-xs-12 col-sm-2 col-lg-2">
+                        </div>
+                        <div class="col-xs-12 col-sm-5 col-lg-5">
+                            <div tabindex="-1" class="alert-info divsbSelected" style="color: #000;text-align:left">
+                                <div>
+                                    <ul style="text-align:left;">
+                                        <li style="list-style:none;"><br /></li>
+                                        <li style="list-style:none;"><br /></li>
+                                        <li style="list-style:none;padding-left: 60px;font-weight: bold;">Create New</li>
+                                        <li style="list-style:none;"><br /></li>
+                                        <li style="list-style:none;"><br /></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            @foreach (var qbCustomer in Model.UnlinkedQBCustomers)
+                            {
+                                <div tabindex="-1" id="divSystemCustomer-@qbCustomer.QbCustomerId"
+                                     class="badge-warning-light divqbcustomers" data-customerid="@qbCustomer.QbCustomerId">
+                                    <div class="divqbcustomers" id="divqbCustomer-@qbCustomer.QbCustomerId">
+                                        <ul style="text-align:left">
+                                            <li style="list-style:none;">@qbCustomer.SCName</li>
+                                            <li style="list-style:none;">@qbCustomer.SCAddress, &nbsp; @qbCustomer.SState</li>
+                                            <li style="list-style:none;">@qbCustomer.SCPostalCode</li>
+                                            <li style="list-style:none;">@qbCustomer.SCPhone</li>
+                                            <li style="list-style:none;">@qbCustomer.SCEmail</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" id="btnClose" data-dismiss="modal">Close</button>
+    <button type='button' id="save-update-list" class='btn btn-primary' style="display:@(style);">Save</button>
+</div>

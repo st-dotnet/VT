@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{08D65DAD-8684-4F35-9EFF-E74ADD2D2862}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>VT.QuickBooks</RootNamespace>
+    <AssemblyName>VT.QuickBooks</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Class1.cs" />
+    <Compile Include="DTOs\CompanyServices\CompanyServiceResponse.cs" />
+    <Compile Include="DTOs\CompanyServices\GetAllServices.cs" />
+    <Compile Include="DTOs\CompanyServices\GetQBServiceResponse.cs" />
+    <Compile Include="DTOs\Customers\CreateCustomerRequest.cs" />
+    <Compile Include="DTOs\Customers\GetAllCustomersResponse.cs" />
+    <Compile Include="DTOs\Customers\GetCustomerResponse.cs" />
+    <Compile Include="DTOs\Customers\LinkedCustomersRequest.cs" />
+    <Compile Include="DTOs\Employee\CreateEmployeeRequest.cs" />
+    <Compile Include="DTOs\Employee\CreateEmployeeResponse.cs" />
+    <Compile Include="DTOs\Employee\EmployeeResponse.cs" />
+    <Compile Include="DTOs\Employee\GetAllEmployeeResponse.cs" />
+    <Compile Include="DTOs\Employee\GetEmployeeResponse.cs" />
+    <Compile Include="DTOs\Employee\SyncEmployeeRequest.cs" />
+    <Compile Include="DTOs\HttpWebRequestModel.cs" />
+    <Compile Include="DTOs\Invoices\DeleteInvoiceResponse.cs" />
+    <Compile Include="DTOs\Invoices\VoidInvoiceResponse.cs" />
+    <Compile Include="DTOs\PullEntityRequest.cs" />
+    <Compile Include="DTOs\QuickbookBaseResponse.cs" />
+    <Compile Include="DTOs\QuickbooksSettingsRequest.cs" />
+    <Compile Include="DTOs\RefreshTokenResponse.cs" />
+    <Compile Include="Interfaces\ICustomer.cs" />
+    <Compile Include="Interfaces\IEmployee.cs" />
+    <Compile Include="Interfaces\IQBCompanyService.cs" />
+    <Compile Include="Interfaces\IQuickbookSettings.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DTOs\Invoices\CreateInvoiceRequest.cs" />
+    <Compile Include="DTOs\Invoices\CreateInvoiceResponse.cs" />
+    <Compile Include="DTOs\Invoices\GetInvoiceResponse.cs" />
+    <Compile Include="Interfaces\IInvoices.cs" />
+    <Compile Include="QBUtils\QBTokenManager.cs" />
+    <Compile Include="Services\CompanyServices.cs" />
+    <Compile Include="Services\CustomerServices.cs" />
+    <Compile Include="Services\EmployeeServices.cs" />
+    <Compile Include="Services\InvoiceService.cs" />
+    <Compile Include="QBUtils\HttpQBUtils.cs" />
+    <Compile Include="Services\QuickbookSettingsServices.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VT.Common\VT.Common.csproj">
+      <Project>{347f7985-922b-4080-b211-469b24fc6f4c}</Project>
+      <Name>VT.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VT.Data\VT.Data.csproj">
+      <Project>{4502ac20-e4f0-46a0-92b9-22151b0d91cb}</Project>
+      <Name>VT.Data</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,119 @@
+﻿@model QuickbooksSettingsModel
+@{
+    var model = Model;
+    var displyGrid = Model.IsQuickbooksIntegrated ? "block" : "none";
+}
+<form id="save" class="form-horizontal" role="form">
+    <input type="hidden" name="CompanyId" id="CompanyId" value="@ViewBag.CompanyId" />
+    <input type="hidden" name="QbSettingsId" id="QbSettingsId" value="@Model.QbSettingsId" />
+
+    <div class="row">
+        <div class="col-lg-5 col-lg-offset-3">
+            <div class="form-group merchant-p" style="display:none;">
+                <h3> <label class="col-sm-8 control-label">Integrate With Quickbooks Online</label></h3>
+                <div class="col-sm-4">
+                    @Html.CheckBoxFor(x => x.IsQuickbooksIntegrated, new { @class = "small js-switch1" })
+                </div>
+            </div>
+            <div class="quikcbook-settings-div" style="display:@(displyGrid);">
+                <h3><label style="color:#1ab394; text-align: center;"><b>API/Login Credentials </b></label></h3>
+                <div class="form-group merchant-p">
+                    <label class="col-sm-3 control-label">Client ID</label>
+                    <div class="col-sm-9">
+                        @Html.TextBoxFor(x => x.ClientId, new { @class = "form-control" })
+                    </div>
+                </div>
+                <div class="form-group merchant-p">
+                    <label class="col-sm-3 control-label">Client Secret</label>
+                    <div class="col-sm-9">
+                        @Html.TextBoxFor(x => x.ClientSecret, new { @class = "form-control" })
+                    </div>
+                </div>
+                <div class="form-group merchant-p">
+                    <label class="col-sm-3 control-label">Realm ID</label>
+                    <div class="col-sm-9">
+                        @Html.TextBoxFor(x => x.RealmId, new { @class = "form-control" })
+                    </div>
+                </div>
+                <div class="form-group merchant-p">
+                    <label class="col-sm-3 control-label" for="card-number">Invoice Prefix</label>
+                    <div class="col-sm-9">
+                        @Html.TextBoxFor(x => x.InvoicePrefix, new { @class = "form-control" })
+                    </div>
+                    <div class="col-sm-9" id="card-number"></div>
+                </div>
+                <div class="form-group merchant-p">
+                    <label class="col-sm-3 control-label" for="card-number">Default Password</label>
+                    <div class="col-sm-9">
+                        @Html.TextBoxFor(x => x.DefaultPassword, new { @class = "form-control" })
+                    </div>
+                    <div class="col-sm-9" id="card-number"></div>
+                </div>
+                <div class="hr-line-dashed"></div>
+                <h3><label style="color:#1ab394;"><b>Synchronization Settings </b></label></h3>
+                <div class="form-group merchant-p">
+                    <label class="col-sm-8 control-label" style="text-align:left;">Synchronize Services</label>
+                    <div class="col-sm-4">
+                        @if (Model.ServicesSettings)
+                        {
+                            <input type="checkbox" checked="checked" data-val="true" class="small js-switch2" id="ServicesSettings"
+                                   style="display:none;" data-issettingson="@Model.ServicesSettings" data-switchery="true"
+                                   name="ServicesSettings" />
+                        }
+                        else
+                        {
+                            <input type="checkbox" data-val="true" class="small js-switch2" id="ServicesSettings"
+                                   style="display:none;" data-issettingson="@Model.ServicesSettings" data-switchery="true"
+                                   name="ServicesSettings" />
+                        }
+                    </div>
+                </div>
+                <div class="form-group merchant-p">
+                    <label class="col-sm-8 control-label" style="text-align:left;">Synchronize Customers</label>
+                    <div class="col-sm-4">
+                        @if (Model.CustomersSettings)
+                        {
+                            <input type="checkbox" checked="checked" data-val="true" class="small js-switch3" id="CustomersSettings"
+                                   style="display:none;" data-issettingson="@Model.CustomersSettings"
+                                   data-switchery="true" name="CustomersSettings" />
+                        }
+                        else
+                        {
+                            <input type="checkbox" data-val="true" class="small js-switch3" id="CustomersSettings"
+                                   style="display:none;" data-issettingson="@Model.CustomersSettings"
+                                   data-switchery="true" name="CustomersSettings" />
+                        }
+                    </div>
+                </div>
+                <div class="form-group merchant-p">
+                    <label class="col-sm-8 control-label" style="text-align:left;" for="card-number">
+                        Synchronize Employees
+                    </label>
+                    <div class="col-sm-4">
+                        @if (Model.EmployeesSettings)
+                        {
+                            <input type="checkbox" checked="checked" data-val="true" class="small js-switch4" id="EmployeesSettings"
+                                   style="display:none;" data-issettingson="@Model.EmployeesSettings" data-switchery="true" name="EmployeesSettings" />
+                        }
+                        else
+                        {
+                            <input type="checkbox" data-val="true" class="small js-switch4" id="EmployeesSettings"
+                                   style="display:none;" data-issettingson="@Model.EmployeesSettings" data-switchery="true" name="EmployeesSettings" />
+                        }
+                    </div>
+                </div>
+                <div class="form-group merchant-p">
+                    <label class="col-sm-8 control-label" style="text-align:left;">Synchronize Workflow Invoices</label>
+                    <div class="col-sm-4">
+                        @Html.CheckBoxFor(x => x.IsCopyWFInvoicesToQB, new { @class = "small js-switch5" })
+                    </div>
+                </div>
+                <div class="hr-line-dashed"></div>
+            </div>
+            <div class="modal-footer" style="border:none">
+                <button onclick="location.href='@Url.Action("Index", "Organizations")';return false;" class="btn btn-default">Cancel</button>
+                <button id="saveqbsettings" class="btn btn-warning">Submit</button>
+            </div>
+        </div>
+    </div>
+</form>

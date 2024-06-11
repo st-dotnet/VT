@@ -1,0 +1,72 @@
+﻿@using VT.Common
+@model string
+
+<div class="row m-b-md m-t">
+    <div class="col-lg-12 no-padding">
+        <div class="col-lg-6">
+            <div class="left-inner-addon">
+                <i class="fa fa-search"></i>
+                <input id="gridsearch" type="search" data-grid="@(Model)" placeholder="Search Grid..." class="form-control">
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <select id="gridPageSize" class="form-control pull-right" style="width:80px;" data-grid="@(Model)">
+                <option value="10">10</option>
+                @if (Model == "ServiceRecordListGrid")
+                {
+                    <option value="25">25</option>
+                    <option value="50" selected="selected">50</option>
+                }
+                else
+                {
+                    <option value="25" selected="selected">25</option>
+                        <option value="50">50</option>
+                }
+                <option value="100">100</option>
+            </select>
+            <span style="margin-right: 5px; margin-left:15px; margin-top: 3px;" class="pull-right">
+                Items per page:
+            </span>
+            @if (Model != "ServiceRecordListGrid" && Model!= "BillingListGrid")
+            {
+                <select id="gridItemStatus" class="form-control pull-right" style="width:120px;" data-grid="@(Model)">
+                    <option value="">All</option>
+                    <option value="Active" selected="selected">Active</option>
+                    <option value="Not Active">Inactive</option>
+                </select>
+                <span style="margin-right: 5px; margin-top: 3px;" class="pull-right">
+                    Show Items:
+                </span>
+            }
+           
+            @if (Model == "BillingListGrid")
+            {
+                if (ViewData["Organizations"] != null)
+                {
+                    var items = (IEnumerable<SelectListItem>)ViewData["Organizations"];
+
+                    <select id="gridOrganization" data-dd="organizations" class="form-control pull-right" style="width: 150px; margin-right: 7px" data-grid="@(Model)">
+                        @foreach (var item in items)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    </select>
+                    <span style="margin-right: 5px; margin-top: 3px;" class="pull-right">Organization:</span>
+                }
+                if (ViewData["Customers"] != null)
+                {
+                    var items = (IEnumerable<SelectListItem>)ViewData["Customers"];
+
+                    <select id="gridOrganization" data-dd="customers" class="form-control pull-right" style="width: 150px; margin-right: 7px" data-grid="@(Model)">
+                        @foreach (var item in items)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    </select>
+                    <span style="margin-right: 5px; margin-top: 3px;" class="pull-right">Customer:</span>
+                }
+            }
+        </div>
+    </div>
+</div>
+<div class="clearfix"></div>

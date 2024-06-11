@@ -1,0 +1,83 @@
+﻿@model ViewCustomerAccessModel
+@using VT.Web.Models
+
+<div id="modal-customer-access-form" class="modal fade" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="customerAccessForm" action="@Url.Action("UserCustomerAccess", "Users")" class="form-horizontal" method="POST" role="form">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Customer Access</h4>
+                    <small class="font-bold"></small>
+                    @Html.HiddenFor(x => x.CompanyWorkerUserId)
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-6"><h4>All Customers</h4></div>
+                        <div class="col-xs-6"><h4>Accessible Customers</h4></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <select multiple
+                                    class="form-control"
+                                    data-right="#su_multiselect_to_2"
+                                    id="su_multiselect_from_2"
+                                    size="10"
+                                    data-right-all="#su_right_All_2"
+                                    data-right-selected="#su_right_Selected_2"
+                                    data-left-selected="#su_left_Selected_2"
+                                    data-left-all="#su_left_All_2" name="FromList">
+                                @if (Model.FromList != null)
+                                {
+                                    foreach (var item in Model.FromList as List<SelectListCustomModel>)
+                                    {
+                                        if (item.IsDeleted)
+                                        {
+                                            <option value="@item.Value" style="color:red;">@item.Text</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-2 mt35">
+                            <button type="button" id="su_right_All_2" class="btn btn-block"><i class="fa fa-forward"></i></button>
+                            <button type="button" id="su_right_Selected_2" class="btn btn-default btn-block"><i class="fa fa-chevron-right"></i></button>
+                            <button type="button" id="su_left_Selected_2" class="btn btn-default btn-block"><i class="fa fa-chevron-left"></i></button>
+                            <button type="button" id="su_left_All_2" class="btn btn-block"><i class="fa fa-backward"></i></button>
+                        </div>
+                        <div class="col-xs-4">
+                            <select multiple class="form-control" id="su_multiselect_to_2" size="10" name="ToList">
+                                @if (Model.ToList != null)
+                                {
+                                    foreach (var item in Model.ToList as List<SelectListCustomModel>)
+                                    {
+                                        if (item.IsDeleted)
+                                        {
+                                            <option value="@item.Value" style="color:red;">@item.Text</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-xs-2 mt35">
+                            <button type="button" id="btnUp" class="btn btn-default btn-block"><i class="fa fa-arrow-up"></i></button>
+                            <button type="button" id="btnDown" class="btn btn-default btn-block"><i class="fa fa-arrow-down"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button id="btnCustomerAccess" type="submit" class="btn btn-warning">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

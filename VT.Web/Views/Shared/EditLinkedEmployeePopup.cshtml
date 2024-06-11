@@ -1,0 +1,80 @@
+﻿@model  VT.Services.DTOs.SystemEmployeeModel
+
+<div id="modal-edit-linkemployee-form" class="modal fade" aria-hidden="true" style="z-index:9999 !important;">
+    <div class="modal-dialog modal-md">
+        <form id="saveEditEmployeePopup" action="@Url.Action("UpdateLinkedEmployee", "Quickbooks")"
+              class="form-horizontal"
+              method="POST" role="form">
+            @Html.AntiForgeryToken();
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="modal-edit-linkemployee-title"><b>Edit Employee</b> </h4>
+                    <small class="font-bold"></small>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            @Html.HiddenFor(x => x.CompanyId)
+                            @Html.HiddenFor(x => x.EmployeeId)
+                            @Html.HiddenFor(x => x.QBEmployeeId)
+                            <div class="form-group">
+                                <div class="col-sm-12 text-center">
+                                    <h3><b><span id="matchStatus" style="color:#1ab394;"></span></b></h3>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">First Name</label>
+                                <div class="col-sm-9">
+                                    @Html.TextBoxFor(x => x.GivenName, new { @class = "form-control small", placeholder = "First Name" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Last Name</label>
+                                <div class="col-sm-9">
+                                    @Html.TextBoxFor(x => x.FamilyName, new { @class = "form-control small", placeholder = "Last Name" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Email</label>
+                                <div class="col-sm-9">
+                                    @Html.TextBoxFor(x => x.Email, new { @class = "form-control small" })
+                                </div>
+                            </div>
+                            <div>
+                                    <table class="table" style="margin-bottom:0;">
+                                    <thead class="thead-inverse">
+                                        <tr>
+                                            <th width="50%" style="color:#1ab394;padding-left: 50px;"><h3><b>System</b></h3></th>
+                                            <th width="50%" style="color:#1ab394;padding-left: 50px;"><h3><b>Quick Books</b></h3></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr id="tblRow1E">
+                                            <td width="50%">
+                                                <table class="table" id="tblSysstemEmployee">
+                                                    <tbody id="tblC1E"></tbody>
+                                                </table>
+                                            </td>
+                                            <td width="50%">
+                                                <table class="table" id="tblQBEmployee">
+                                                    <tbody id="tblC2E"></tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button id="btneditSaveEmployee" type="submit" class="btn btn-warning">Save</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,278 @@
+﻿@model VT.Web.Models.GatewayCustomerViewModel
+@{
+    ViewBag.Title = "Set up Your Credit Card";
+    Layout = "~/Views/Shared/LoggedOutLayout.cshtml";
+}
+
+@section PageLevelScripts
+{
+    @Scripts.Render("~/plugins/validate")
+    @if (Model.GatewayType == VT.Data.PaymentGatewayType.Braintree)
+    {
+        <script src="@Url.Content("~/Scripts/app/braintree-customer.js")"></script>
+        <script src="https://js.braintreegateway.com/v2/braintree.js"></script>
+        <script>
+            var clientToken = "@Model.ClientToken";
+            braintree.setup(clientToken, "custom", {
+                id: "braintree-customer-form",
+                hostedFields: {
+                    number: {
+                        selector: "#card-number"
+                    },
+                    cvv: {
+                        selector: "#cvv"
+                    },
+                    expirationDate: {
+                        selector: "#expiration-date"
+                    },
+                    styles: {
+                        // Styling a specific field
+                        ".number": {
+                            "font-family": "monospace",
+                            "font-size": "12pt",
+                        },
+                        // Styling a specific field
+                        ".cvv": {
+                            "font-family": "monospace",
+                            "font-size": "12pt",
+                        },
+                        // Styling a specific field
+                        ".expiration-date": {
+                            "font-family": "monospace",
+                            "font-size": "12pt",
+                        },
+                        // Styling element state
+                        ":focus": {
+                            "color": "blue"
+                        },
+                        ".valid": {
+                            "color": "green"
+                        },
+                        ".invalid": {
+                            "color": "red"
+                        },
+
+                        // Media queries
+                        // Note that these apply to the iframe, not the root window.
+                        "@@media screen and (max-width: 700px)": {
+                            "input": {
+                                "font-size": "14pt"
+                            }
+                        }
+                    }
+                },
+                onPaymentMethodReceived: function (payload) {
+                    $("#Nonce").val(payload.nonce);
+                },
+                onError: function (error) {
+                    $("#Nonce").val('ERROR');
+                }
+            });
+        </script>
+    }
+    else
+    {
+        @*<script src="@Url.Content("~/Scripts/app/splash-customer.js")"></script>*@
+        <script>
+            //Save Customer
+            var saveCompanyCreditCard = $("#saveCompanyCreditCard").validate({
+                rules: {
+                    FirstName: {
+                        required: true
+                    },
+                    LastName: {
+                        required: true
+                    },
+                    Email: {
+                        required: true
+                    },
+                    CreditCard: {
+                        required: true
+                    },
+                    CVV: {
+                        required: true
+                    },
+                    PaymentMethod: {
+                        required: true
+                    },
+                    Month: {
+                        required: true
+                    },
+                    Year: {
+                        required: true
+                    }
+                },
+                highlight: function (label) {
+                    $(label).closest('.form-group').removeClass('has-success').addClass('has-error');
+                },
+                success: function (label) {
+                    $(label).closest('.form-group').removeClass('has-error');
+                    label.remove();
+                },
+                errorPlacement: function (error, element) {
+                    var placement = element.closest('.input-group');
+                    if (!placement.get(0)) {
+                        placement = element;
+                    }
+                    if (error.text() !== '') {
+                        placement.after(error);
+                    }
+                },
+                submitHandler: function (form) {
+                    var buttonText = $("#btnSaveCompanyCreditCard").html();
+                    $("#btnSaveCompanyCreditCard").attr('disabled', '').html('<i class="fa fa-spinner fa-spin"></i>&nbsp; ' + buttonText);
+
+                    $(form).ajaxSubmit({
+                        success: function (data) {
+                            if (data.success) {
+                                VT.Util.Notification(true, "Credit card information has been successfully saved.");
+                                window.location.href = "/setup-Success";
+                            }
+                            else {
+                                if (data.internalError) {
+                                    VT.Util.HandleLogout(data.message);
+                                    VT.Util.Notification(false, data.message);
+                                }
+                                else {
+                                    window.location.href = "/setup-error";
+                                }
+                            }
+                            $("#btnSaveCompanyCreditCard").attr('disabled', null).html(buttonText);
+                        },
+                        error: function (xhr, status, error) {
+                            $("#btnSaveCompanyCreditCard").attr('disabled', null).html(buttonText);
+                        }
+                    });
+                    return false;
+                }
+            });
+        </script>
+    }
+}
+
+@if (Model.IsCustomerTokenExpired)
+{
+    <div class="wrapper wrapper-content animated fadeInRight wrapper-new-page-success">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>Setup Error</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="alert alert-danger">
+                            This link has been expired. Please ask your Organization to generate a new link to set payment information.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    if (Model.GatewayType == VT.Data.PaymentGatewayType.Braintree)
+    {
+        <form id="braintree-customer-form" action="@Url.Action("SetPaymentMethod", "SetPayment")" class="form-horizontal" method="POST" role="form">
+            @Html.Partial("CreditCardForm", Model)
+        </form>
+    }
+    else
+    {
+        <div class="wrapper wrapper-content animated fadeInRight">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5>SETUP CUSTOMER</h5>
+                            <div class="ibox-tools">
+                                <a class="collapse-link">
+                                    <i class="fa fa-chevron-up"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="ibox-content">
+                            <form id="saveCompanyCreditCard" action="@Url.Action("SetPaymentMethod", "SetPayment")" class="form-horizontal"
+                                   method="POST" role="form">
+                                <div class="row">
+                                    <div class="col-lg-5 col-lg-offset-3">
+                                        @Html.HiddenFor(x => x.CompanyId)
+                                        @Html.HiddenFor(x => x.CustomerId)
+                                        @Html.HiddenFor(x => x.GatewayType)
+                                        <div class="form-group merchant-p">
+                                            <label class="col-sm-3 control-label">First Name</label>
+                                            <div class="col-sm-9">
+                                                @Html.TextBoxFor(x => x.FirstName, new { @class = "form-control small" })
+                                            </div>
+                                        </div>
+                                        <div class=""></div>
+                                        <div class="form-group merchant-p">
+                                            <label class="col-sm-3 control-label">Last Name</label>
+                                            <div class="col-sm-9">
+                                                @Html.TextBoxFor(x => x.LastName, new { @class = "form-control small" })
+                                            </div>
+                                        </div>
+                                        <div class=""></div>
+                                        <div class="form-group merchant-p">
+                                            <label class="col-sm-3 control-label">Email</label>
+                                            <div class="col-sm-9">
+                                                @Html.TextBoxFor(x => x.Email, new { @class = "form-control small" })
+                                            </div>
+                                        </div>
+                                        <div class=""></div>
+
+                                        <div class="form-group merchant-p">
+                                            <label class="col-sm-3 control-label" for="card-number">Card Number</label>
+                                            <div class="col-sm-9">
+                                                @Html.TextBoxFor(x => x.CreditCard, new { @class = "form-control small" })
+                                            </div>
+                                            <div class="col-sm-9" id="card-number"></div>
+                                        </div>
+                                        <div class=""></div>
+                                        <div class="form-group merchant-p">
+                                            <label class="col-sm-3 control-label" for="cvv">CVV</label>
+                                            <div class="col-sm-9">
+                                                @Html.TextBoxFor(x => x.CVV, new { @class = "form-control small" })
+                                            </div>
+                                            <div class="col-sm-9" id="cvv"></div>
+                                        </div>
+                                        <div class=""></div>
+                                        <div class="form-group merchant-p">
+                                            <label class="col-sm-3 control-label">Payment Method</label>
+                                            <div class="col-sm-9">
+                                                <select id="CardType" name="CardType" class="form-control">
+                                                    @foreach (var item in ViewData["PaymentMethod"] as IEnumerable<SelectListItem>)
+                                                    {
+                                                        <option value="@item.Value" @(item.Value == Model.PaymentMethod.ToString() ? "selected='selected'" : "")>@item.Text</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class=""></div>
+                                        <div class="form-group merchant-p">
+                                            <div class="col-lg-12">
+                                                <div class="row">
+                                                    <label class="col-sm-3 control-label" for="expiration-date">Expiration</label>
+                                                    <div class="col-sm-4">
+                                                        @Html.DropDownListFor(x => x.Month, ViewData["MonthsList"] as IEnumerable<SelectListItem>, new { @class = "form-control" })
+                                                    </div>
+                                                    <div class="col-sm-5">
+                                                        @Html.DropDownListFor(x => x.Year, ViewData["YearsList"] as IEnumerable<SelectListItem>, new { @class = "form-control" })
+                                                    </div>
+                                                    <!--<div class="col-sm-2" id="expiration-date"></div>-->
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button id="btnSaveCompanyCreditCard" type="submit" class="btn btn-warning">Submit</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}

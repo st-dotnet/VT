@@ -1,0 +1,165 @@
+﻿@model VT.Services.DTOs.EmployeeSynchronizationList
+@{
+    var isAnyMatched = Model.LinkedEmployees.FirstOrDefault(x => !x.LinkedSystemEmployee.IsMatch);
+    var style = (isAnyMatched != null) ? "none" : "inline-block";
+}
+
+<script>
+    $('.new-aco .accordion').find('.accordion-toggle').click(function () {
+        $(this).next().slideToggle('600');
+        $(".accordion-content").not($(this).next()).slideUp('600');
+    });
+    $('.accordion-toggle').on('click', function () {
+        $(this).toggleClass('active').siblings().removeClass('active');
+    });
+</script>
+
+<div class="new-aco">
+    <div class="accordion">
+        <h4 class="accordion-toggle active" style="text-align:left;"><b>Instructions</b></h4>
+        <div class="accordion-content" style="display: block; text-align:left;">
+            <p style="margin: 15px 15px 15px;">
+                <b>1)</b>&nbsp;Each row in the Linked Employees section must have a
+                <button type='button' class='btn btn-primary btn-xs' title="Employee Matching">
+                    <i class="fa fa-check" aria-hidden="true"></i>
+                </button> before saving the results since we want the data in the system and Quick books to match.
+            </p>
+            <p style="margin: 15px 15px 15px;">
+                <b>2)</b>&nbsp;Unlinked Employees are entities that exist in only the system, or Quick books. Some of these entities refer to the same employees and should be linked. To link them click on each entity and press the link button.
+            </p>
+        </div>
+        <h4 class="accordion-toggle" style="text-align:left"><b>Linked Employees</b></h4>
+        <div class="accordion-content" id="linkedemployeespanel">
+            <table class="table" style="margin-bottom:0; text-align:left;">
+                <thead class="thead-inverse">
+                    <tr>
+                        <th width="40%"><h3 style="padding-left:15px;"><b>System</b></h3></th>
+                        <th width="20%"></th>
+                        <th width="40%"><h3 style="padding-left:0px;"><b>Quick Books</b></h3></th>
+                    </tr>
+                </thead>
+            </table>
+            <div style="overflow-y: scroll;height:  400px;">
+                @foreach (var item in Model.LinkedEmployees)
+                {
+                    var linkedSystemEmployee = item.LinkedSystemEmployee;
+                    var linkedQBCustomer = item.LinkedQBEmployee;
+                    var color = item.LinkedQBEmployee.IsMatch ? "bg-success" : "bg-danger";
+                <div tabindex="-1" id="myDiv-@linkedSystemEmployee.EmployeeId" class="changeEmployeeColorDiv"
+                     data-employeeid="@linkedSystemEmployee.EmployeeId"
+                     data-ismatch="@linkedSystemEmployee.IsMatch">
+                    <div class="table-responsive @color" id="divClassEmployee-@linkedSystemEmployee.EmployeeId">
+                        <table class="table" style="text-align:left;">
+                            <tbody>
+                                <tr id="tblRow">
+                                    <td width="40%">
+                                        @(linkedSystemEmployee.GivenName + " " + linkedSystemEmployee.FamilyName)<br />
+                                        @linkedSystemEmployee.Email
+                                    </td>
+                                    <td width="20%" class="text-center">
+                                        <button type='button' data-editemployeeid="@linkedSystemEmployee.EmployeeId"
+                                                data-editqbemployeeid="@linkedSystemEmployee.QBEmployeeId"
+                                                class='btn btn-primary btn-sm editLinkedEmployee' title="Edit Employee">
+                                            <i class="fa fa-pencil-square" aria-hidden="true"></i>
+                                        </button>
+                                        <br />
+                                        <br />
+                                        <button type='button' class='btn btn-primary btn-sm unlinkEmployee'
+                                                id="unlinkEmployee-@linkedSystemEmployee.EmployeeId" title="Unlink Customer"
+                                                data-unlinkEmployeeId="@linkedSystemEmployee.EmployeeId"
+                                                data-unlinkqbEmployeeId="@linkedSystemEmployee.QBEmployeeId">
+                                            <i class="fa fa-chain-broken" aria-hidden="true"></i>
+                                        </button>
+                                    </td>
+                                    <td width="40%">
+                                        @(linkedQBCustomer.GivenName + " " + linkedSystemEmployee.FamilyName)<br />
+                                        @linkedQBCustomer.Email
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+        <h4 class="accordion-toggle" style="text-align:left"><b>Unlinked Employees</b></h4>
+        <div class="accordion-content">
+            <div class="box-back">
+                <table class="table" style="margin-bottom:0; text-align:left;">
+                    <thead class="thead-inverse">
+                        <tr>
+                            <th width="40%"><h3 style="padding-left:15px;text-align:left;"><b>System</b></h3></th>
+                            <th width="20%" style="text-align:center;">
+                                <a href="" class="btn btn-primary" id="btnLinkEmployees" style="display:none;">Link</a>
+                            </th>
+                            <th width="40%"><h3 style="padding-left:0px;text-align:left;"><b>Quick Books</b></h3></th>
+                        </tr>
+                    </thead>
+                </table>
+                <div style="overflow-y: scroll;height:  400px; padding-top:20px;">
+                    <div class="">
+                        <div class="col-xs-12 col-sm-5 col-lg-5">
+                            <div tabindex="-1" class="alert-info divEmployeeSelected" style="color: #000;text-align:left;">
+                                <div>
+                                    <ul>
+                                        <li style="list-style:none;"><br /></li>
+                                        <li style="list-style:none;"><br /></li>
+                                        <li style="list-style:none;padding-left: 60px;font-weight: bold;">Create New</li>
+                                        <li style="list-style:none;"><br /></li>
+                                        <li style="list-style:none;"><br /></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            @foreach (var systemEmployee in Model.UnlinkedSystemEmployees)
+                            {
+                                <div tabindex="-1" id="divSystemEmployee-@systemEmployee.EmployeeId"
+                                     class="badge-warning-light divsystemEmployees"
+                                     data-employeeid="@systemEmployee.EmployeeId">
+                                    <div>
+                                        <ul>
+                                            <li style="list-style:none;">@(systemEmployee.GivenName + " " + systemEmployee.FamilyName)</li>
+                                            <li style="list-style:none;">@systemEmployee.Email
+                                        </ul>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-xs-12 col-sm-2 col-lg-2">
+                        </div>
+                        <div class="col-xs-12 col-sm-5 col-lg-5">
+                            <div tabindex="-1" class="alert-info divEmployeeqbSelected" style="color: #000; text-align:left;">
+                                <div>
+                                    <ul>
+                                        <li style="list-style:none;"><br /></li>
+                                        <li style="list-style:none;"><br /></li>
+                                        <li style="list-style:none;padding-left: 60px;font-weight: bold;">Create New</li>
+                                        <li style="list-style:none;"><br /></li>
+                                        <li style="list-style:none;"><br /></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            @foreach (var qbEmployee in Model.UnlinkedQBEmployees)
+                            {
+                                <div tabindex="-1" id="divSystemEmployee-@qbEmployee.QBEmployeeId"
+                                     class="badge-warning-light divqbEmployees"
+                                     data-employeeid="@qbEmployee.QBEmployeeId">
+                                    <div class="divqbEmployee" id="divqbEmployee-@qbEmployee.QBEmployeeId">
+                                        <ul>
+                                            <li style="list-style:none;">@(qbEmployee.GivenName + " " + qbEmployee.FamilyName)</li>
+                                            <li style="list-style:none;">@qbEmployee.Email
+                                        </ul>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" data-dismiss="modal" id="btnEmployeeClose">Close</button>
+    <button type='button' id="save-updateEmployee-list" class='btn btn-primary' style="display:@(style);">Save</button>
+</div>

@@ -1,0 +1,634 @@
+﻿@using Kendo.Mvc.UI
+@using VT.Common
+@using VT.Web.Models
+
+@{
+    ViewBag.Title = "Customers";
+    Layout = "~/Views/Shared/LoggedInLayout.cshtml";
+    var customIdentity = (VT.Common.CustomIdentity)User.Identity;
+    var gateway = customIdentity.PaymentGateway;
+}
+
+@section PageLevelStyles
+{
+    @Styles.Render("~/plugins/switcheryStyles")
+    @Styles.Render("~/plugins/jasnyBootstrapStyles")
+}
+
+@section PageLevelScripts
+{
+    @Scripts.Render("~/plugins/validate")
+    @Scripts.Render("~/plugins/iCheck")
+    @Scripts.Render("~/plugins/switchery")
+    @Scripts.Render("~/plugins/jasnyBootstrap")
+    <script src="@Url.Content("~/Scripts/app/customer.js")"></script>
+    <script src="@Url.Content("~/Scripts/app/quickbookssettingsForCustomer.js")"></script>
+    <script type="text/javascript">
+        var gateway = '@gateway';
+        $('.phone').inputmask({
+            mask: '(999) 999-9999'
+        });
+
+        function getActionsInfo(item) {
+            return [
+                "<a class='edit-customer' data-id='" + item.Id + "' href='#dynamicModal'><i class='fa fa-edit'></i> </a> &nbsp;" +
+                "<a class='view-customer' data-id='" + item.Id + "' href='#divcustomerdetails'><i class='fa fa-eye'></i> </a> "
+            ].join('');
+        }
+
+        function getPaymentConfiguredInfo(item) {
+            var action = item.Gateway === 2 ? "ConfigureSplashCustomerCc" : "ConfigureCustomerCc";
+            var ccLink = " <a href='/" + action + "/" + item.Id + "' title='Configure'><i class='fa fa-wrench'></i></a>&nbsp;";
+            var text = item.IsCreditCardSetup ? "Setup Complete" : "Not Setup";
+            var html = "<span class='label label-" + item.PaymentConfiguredCss + "'>" + text + "</span>";
+            html += ccLink;
+            html += "&nbsp; <a href='#' class='sendEmail' data-id='" + item.Id + "' title='Send Email'> <i class='fa fa-envelope'></i></a>";
+            if (item.IsCreditCardSetup) {
+                html += "&nbsp; <a href='#' class='trashCreditCard' data-id='" + item.Id + "' title='Delete Credit Card'> <i class='fa fa-trash'></i></a>";
+            }
+            return html;
+        }
+
+        function getActiveInfo(item) {
+            return "<span class='label label-" + item.IsActiveCss + "'>" + item.IsActiveText + "</span>";
+        }
+
+        function getCompanyName(item) {
+            return (item.IsCompanyDeleted == true) ? "<i style=color:red;>" + item.CompanyName + "</i>" : item.CompanyName;
+        }
+        function getCustomerName(item) {
+            return (item.IsDeleted == true) ? "<i style=color:red;>" + item.Name + "</i>" : item.Name;
+        }
+
+        function getCheckbox(item) {
+            return item.IsActive ? "<input type='checkbox' value='" + item.Id + "' class='i-checks' ></input>" :
+                "<input type='checkbox' value='" + item.Id + "' class='i-checks' disabled ></input>";
+        }
+        // for super administrator.
+        function getToggleForCreditCard(item) {
+            if (item.IsCreditCardSetup) {
+                if (item.IsCreditCardActive) {
+                    return "<a class='btn-icon-only btn-default disable-creditcard' data-id='" + item.Id + "' href='#' data-toggle='tooltip' title='Inactive'><i class='fa fa-toggle-on fa-3x' aria-hidden='true'></i></a> &nbsp;";
+                }
+                else {
+                    return "<a class='btn-icon-only btn-default activate-creditcard' data-id='" + item.Id + "' href='#' data-toggle='tooltip' title='Active'><i class='fa fa-toggle-off fa-3x' aria-hidden='true'></i></a> &nbsp;";
+                }
+            }
+            return "";
+        }
+        // for super administrator.
+        function getToggleToActivateInactivateCustomer(item) {
+            if (item.IsActive) {
+                return "<a class='btn-icon-only btn-default cust-deactivate' data-id='" + item.Id + "' href='#' data-toggle='tooltip' title='Inactive'><i class='fa fa-toggle-on fa-3x' aria-hidden='true'></i></a> &nbsp;";
+            }
+            else {
+                return "<a class='btn-icon-only btn-default cust-activate' data-id='" + item.Id + "' href='#' data-toggle='tooltip' title='Active'><i class='fa fa-toggle-off fa-3x' aria-hidden='true'></i></a> &nbsp;";
+            }
+        }
+        function onRead(o) {
+            return {
+                additionalInfo: $("#gridItemStatus").val()
+            };
+        }
+    </script>
+
+    <script type="text/javascript">
+
+        $('.phone').inputmask({
+            mask: '(999) 999-9999'
+        });
+        // edit linked customer
+        $(document).on("click", "#link-customers", function () {
+            var buttonText = $(this).html();
+            $(this).attr('disabled', '').html('<i class="fa fa-spinner fa-spin"></i>&nbsp; ' + buttonText);
+            $.ajax({
+                url: '/Customers/ShowLinkedCustomers/',
+                type: "POST",
+                data: {
+                    SystemCustomers: sysCustsArray,
+                    QbCustomers: qbCustsArray
+                },
+                success: function (result) {
+                    if (result.success) {
+                        $("#CompanyId1").val(result.customer.CompanyId);
+                        $("#SCCustomerId1").val(result.customer.SCCustomerId);
+                        $("#QbCustomerId1").val(result.customer.QbCustomerId);
+                        $("#SCName1").val(result.customer.SCName);
+                        $("#SCAddress1").val(result.customer.SCAddress);
+                        $("#SState1").val(result.customer.SState);
+                        $("#SCPostalCode1").val(result.customer.SCPostalCode);
+                        $("#SCPhone1").val(result.customer.SCPhone);
+                        $("#SCEmail1").val(result.customer.SCEmail);
+                        $("#matchStatus1").text(result.customer.IsMatch ? "Set Customer Data" : "Set Customer Data");
+                        $("#tblSysstemCustomer1 tbody").append(result.systemcustmer);
+                        $("#tblQBCustomer1 tbody").append(result.qbCustomer);
+
+                        if (result.customer.IsMatch) {
+                            $("#tblRow11").addClass("bg-success");
+                            $("#tblC11").addClass("bg-success");
+                            $("#tblC21").addClass("bg-success");
+                        }
+                        else {
+                            $("#tblRow11").addClass("bg-danger");
+                            $("#tblC11").addClass("bg-danger");
+                            $("#tblC21").addClass("bg-danger");
+                        }
+                        $("#link-customers").attr('disabled', null).html(buttonText);
+                        $("#modal-edit-linkUnlinkCustomer-title").html("Linked Customer")
+                        $("#modal-edit-linkUnlinkCustomer-form").modal({
+                            backdrop: 'static',
+                            keyboard: false,
+                            show: true
+                        });
+                    }
+                    else {
+                        VT.Util.HandleLogout(result.message);
+                        VT.Util.Notification(false, result.message);
+                        $("#link-customers").attr('disabled', null).html(buttonText);
+                    }
+                },
+                error: function (xhr, status, error) {
+
+                    VT.Util.Notification(false, error);
+                }
+            });
+            return false;
+        });
+        // basic
+        var saveLinkedCustomer = $("#saveEditLinkedCustomerPopup").validate({
+            rules: {
+                SCName1: { required: true },
+                SCAddress1: { required: true },
+                SState1: { required: true },
+                SCPostalCode1: { required: true },
+                SCPhone1: { required: true },
+                SCEmail1: { required: true, email: true },
+            },
+            highlight: function (label) {
+                $(label).closest('.form-group').removeClass('has-success').addClass('has-error');
+            },
+            success: function (label) {
+                $(label).closest('.form-group').removeClass('has-error');
+                label.remove();
+            },
+            errorPlacement: function (error, element) {
+                var placement = element.closest('.input-group');
+                if (!placement.get(0)) {
+                    placement = element;
+                }
+                if (error.text() !== '') {
+                    placement.after(error);
+                }
+            },
+            submitHandler: function (form) {
+                var buttonText = $("#btneditLinkUnlinkedSaveCustomer").html();
+                $("#btneditLinkUnlinkedSaveCustomer").attr('disabled', '').html('<i class="fa fa-spinner fa-spin"></i>&nbsp; ' + buttonText);
+
+                $(form).ajaxSubmit({
+                    success: function (data) {
+                        $("#btneditSaveCustomer").attr('disabled', null).html('Submit');
+                        $("#modal-edit-linkUnlinkCustomer-form").modal("hide");
+                        $("#mainDiv").html(data);
+                        $("#linkedCustomerPanel").show();
+                    },
+                    error: function (xhr, status, error) {
+                        $("#btneditLinkUnlinkedSaveCustomer").attr('disabled', null).html(buttonText);
+                    }
+                });
+                return false;
+            }
+        });
+
+        $("#modal-edit-linkUnlinkCustomer-form").on('hidden.bs.modal', function () {
+            $("#tblC11").empty();
+            $("#tblC21").empty();
+            $("#tblRow11").removeClass("bg-success");
+            $("#tblC11").removeClass("bg-success");
+            $("#tblC21").removeClass("bg-success");
+            $("#tblRow11").removeClass("bg-danger");
+            $("#tblC11").removeClass("bg-danger");
+            $("#tblC21").removeClass("bg-danger");
+            $(".has-error").removeClass("has-error");
+            saveLinkedCustomer.resetForm();
+        });
+
+        function toggleChevron(e) {
+            $(e.target)
+            .prev('.panel-heading')
+            .find("i.indicator")
+            .toggleClass('glyphicon-chevron-down-custom glyphicon-chevron-up-custom');
+        }
+        $('#accordion').on('hidden.bs.collapse', toggleChevron);
+        $('#accordion').on('shown.bs.collapse', toggleChevron);
+
+        function remove(array, element) {
+            const index = array.indexOf(element);
+            if (index !== -1) {
+                array.splice(index, 1);
+            }
+        }
+        var sysCustsArray = [];
+        var qbCustsArray = [];
+
+        $(document).on("focus", ".changeColorDiv", function () {
+            var customerId = $(this).data("customerid");
+            var isMatch = $(this).data("ismatch");
+            if (isMatch == "True") {
+                $("#divClass-" + customerId).removeClass("bg-success");
+                $("#divClass-" + customerId).css("background-color", '#93d584bd');
+            }
+            else {
+                $("#divClass-" + customerId).removeClass("bg-danger");
+                $("#divClass-" + customerId).css("background-color", '#f07070a6');
+            }
+        });
+
+        $(document).on("focusout", ".changeColorDiv", function () {
+            var customerId = $(this).data("customerid");
+            var isMatch = $(this).data("ismatch");
+            if (isMatch == "True") {
+                $("#divClass-" + customerId).addClass("bg-success");
+                $("#divClass-" + customerId).css("background-color", "");
+            }
+            else {
+                $("#divClass-" + customerId).addClass("bg-danger");
+                $("#divClass-" + customerId).css("background-color", "");
+            }
+        });
+
+        $(document).on("focus", ".divsystemSelected", function () {
+            if ($(".divsystemSelected").hasClass("alert-info")) {
+                $(".divsystemSelected").removeClass("alert-info");
+                $(".divsystemSelected").addClass("bg-primary");
+
+                for (i = 0; i < sysCustsArray.length; i++) {
+                    $("#divSystemCustomer-" + sysCustsArray[i]).removeClass("bg-primary");
+                    $("#divSystemCustomer-" + sysCustsArray[i]).addClass("badge-warning-light");
+                    remove(sysCustsArray, sysCustsArray[i]);
+                }
+            }
+            else {
+                $(".divsystemSelected").removeClass("bg-primary");
+                $(".divsystemSelected").addClass("alert-info");
+            }
+            if ($(".divsystemSelected").hasClass("bg-primary") && qbCustsArray.length == 1) {
+                $("#link-customers").show();
+            }
+            else {
+                $("#link-customers").hide();
+            }
+        });
+
+        $(document).on("focus", ".divsbSelected", function () {
+            if ($(".divsbSelected").hasClass("alert-info")) {
+                $(".divsbSelected").removeClass("alert-info");
+                $(".divsbSelected").addClass("bg-primary");
+                for (i = 0; i < qbCustsArray.length; i++) {
+                    $("#divqbCustomer-" + qbCustsArray[i]).removeClass("bg-primary");
+                    $("#divqbCustomer-" + qbCustsArray[i]).addClass("badge-warning-light");
+                    remove(qbCustsArray, qbCustsArray[i]);
+                }
+            }
+            else {
+                $(".divsbSelected").removeClass("bg-primary");
+                $(".divsbSelected").addClass("alert-info");
+            }
+            if ($(".divsbSelected").hasClass("bg-primary") && sysCustsArray.length == 1) {
+                $("#link-customers").show();
+            }
+            else {
+                $("#link-customers").hide();
+            }
+        });
+
+        $(document).on("focus", ".divsystemCustomers", function () {
+            var customerId = $(this).data("customerid");
+            if (sysCustsArray.length < 1) {
+                if ($("#divSystemCustomer-" + customerId).hasClass("bg-primary")) {
+                    $("#divSystemCustomer-" + customerId).removeClass("bg-primary");
+                    $("#divSystemCustomer-" + customerId).addClass("badge-warning-light");
+                    remove(sysCustsArray, customerId);
+                }
+                else {
+                    $("#divSystemCustomer-" + customerId).removeClass("badge-warning-light");
+                    $("#divSystemCustomer-" + customerId).addClass("bg-primary");
+                    sysCustsArray.push(customerId);
+                    sysCustsArray.toString();
+
+                    if ($(".divsystemSelected").hasClass("bg-primary")) {
+                        $(".divsystemSelected").removeClass("bg-primary");
+                        $(".divsystemSelected").addClass("alert-info");
+                    }
+                }
+            }
+            else {
+                var id = sysCustsArray[0];
+                if (id == customerId) {
+                    $("#divSystemCustomer-" + customerId).removeClass("bg-primary");
+                    $("#divSystemCustomer-" + customerId).addClass("badge-warning-light");
+                }
+                else {
+                    $("#divSystemCustomer-" + customerId).removeClass("badge-warning-light");
+                    $("#divSystemCustomer-" + customerId).addClass("bg-primary");
+                    sysCustsArray.push(customerId);
+                    sysCustsArray.toString();
+                }
+                for (i = 0; i < sysCustsArray.length; i++) {
+                    $("#divSystemCustomer-" + sysCustsArray[i]).removeClass("bg-primary");
+                    $("#divSystemCustomer-" + sysCustsArray[i]).addClass("badge-warning-light");
+                    remove(sysCustsArray, sysCustsArray[i]);
+                }
+            }
+            if ($(".divsbSelected").hasClass("bg-primary") && sysCustsArray.length == 1) {
+                $("#link-customers").show();
+            }
+            else {
+                $("#link-customers").hide();
+            }
+            if ($(".divsbSelected").hasClass("bg-primary") && $(".divsystemSelected").hasClass("bg-primary")) {
+                $("#link-customers").hide();
+            }
+
+            if (sysCustsArray.length == 1 && qbCustsArray.length == 1) {
+                $("#link-customers").show();
+            }
+        });
+
+        $(document).on("focus", ".divqbcustomers", function () {
+            var customerId = $(this).data("customerid");
+            if (qbCustsArray.length < 1) {
+                if ($("#divqbCustomer-" + customerId).hasClass("bg-primary")) {
+                    $("#divqbCustomer-" + customerId).removeClass("bg-primary");
+                    $("#divqbCustomer-" + customerId).addClass("badge-warning-light");
+                    remove(qbCustsArray, customerId);
+                }
+                else {
+                    $("#divqbCustomer-" + customerId).removeClass("badge-warning-light");
+                    $("#divqbCustomer-" + customerId).addClass("bg-primary");
+                    qbCustsArray.push(customerId);
+                    qbCustsArray.toString();
+
+                    if ($(".divsbSelected").hasClass("bg-primary")) {
+                        $(".divsbSelected").removeClass("bg-primary");
+                        $(".divsbSelected").addClass("alert-info");
+                    }
+                }
+            }
+            else {
+                var id = qbCustsArray[0];
+                if (id == customerId) {
+                    $("#divqbCustomer-" + customerId).removeClass("bg-primary");
+                    $("#divqbCustomer-" + customerId).addClass("badge-warning-light");
+                }
+                else {
+                    $("#divqbCustomer-" + customerId).removeClass("badge-warning-light");
+                    $("#divqbCustomer-" + customerId).addClass("bg-primary");
+                    qbCustsArray.push(customerId);
+                    qbCustsArray.toString();
+                }
+
+                for (i = 0; i < qbCustsArray.length; i++) {
+                    $("#divqbCustomer-" + qbCustsArray[i]).removeClass("bg-primary");
+                    $("#divqbCustomer-" + qbCustsArray[i]).addClass("badge-warning-light");
+                    remove(qbCustsArray, qbCustsArray[i]);
+                }
+            }
+            if ($(".divsystemSelected").hasClass("bg-primary") && qbCustsArray.length == 1) {
+                $("#link-customers").show();
+            }
+            else {
+                $("#link-customers").hide();
+            }
+            if ($(".divsbSelected").hasClass("bg-primary") && $(".divsystemSelected").hasClass("bg-primary")) {
+                $("#link-customers").hide();
+            }
+            if (sysCustsArray.length == 1 && qbCustsArray.length == 1) {
+                $("#link-customers").show();
+            }
+        });
+
+    </script>
+}
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-10">
+        <h2>CUSTOMERS</h2>
+    </div>
+    <div class="col-lg-2">
+    </div>
+</div>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>ALL CUSTOMERS</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="">
+                        <a href="#" id="btnAddCustomer" class="btn btn-info btn-rounded btn-outline "><i class="fa fa-plus"></i> &nbsp; Add Customer</a>
+                        <a href="#modal-del-customer-form" id="btnDeleteCustomer" class="btn btn-danger btn-rounded btn-outline"><i class="fa fa-trash"></i> &nbsp; Deactivate Customer(s)</a>
+                        @if (ApplicationSettings.EnableCustomerImport)
+                        {
+                            <button type='button' class='btn btn-primary btn-sm' id="sync-linked-customers" value="">
+                                Sync Customers
+                            </button>
+                            <a href="#modal-import-customers" data-toggle="modal" id="btnImportCustomers" class="btn btn-primary btn-rounded btn-outline pull-right"><i class="fa fa-file-excel-o"></i> &nbsp; Import Customers</a>
+                        }
+                    </div>
+
+                    @Html.Partial("GridHeader", "CustomerListGrid")
+
+                    @(Html.Kendo().Grid<CustomerListViewModel>()
+                            .Name("CustomerListGrid")
+                            .Reorderable(x => x.Columns(true))
+                            .Pageable(page => page
+                                .Info(true)
+                                .ButtonCount(5)
+                                .Messages(message => message
+                                    .Empty("No data")
+                                    .Next("Next")
+                                    .Previous("Previous")
+                                    .First("First")
+                                    .Last("Last")
+                                )
+                            )
+                            .Filterable()
+                            .Sortable()
+                            .Columns(columns =>
+                            {
+                                columns.Bound(x => x.Id).Title("")
+                                        .ClientTemplate("#= getCheckbox.apply(this, arguments) #").Filterable(false);
+                                columns.Bound(x => x.Id).Visible(false);
+                                columns.Bound(x => x.CompanyId).Visible(false);
+                                columns.Template(@<text></text>).Title("Company Name").Visible(User.IsInRole(UserRoles.SuperAdmin.ToString()))
+                                    .ClientTemplate("#= getCompanyName.apply(this, arguments) #");
+                                columns.Template(@<text></text>).Title("Name").ClientTemplate("#= getCustomerName.apply(this, arguments) #");
+                            columns.Bound(x => x.Contact).Title("Contact");
+                            columns.Bound(x => x.Email).Title("Email");
+                            columns.Bound(x => x.Telephone).Title("Telephone");
+
+                            columns.Template(@<text></text>).Title("Credit Card")
+                                                                .ClientTemplate("#= getPaymentConfiguredInfo.apply(this, arguments) #");
+                                columns.Template(@<text></text>).Title("<b>Card Active? </b>")
+                                            .ClientTemplate("#= getToggleForCreditCard.apply(this, arguments) #");
+                            columns.Bound(x => x.IsActive).Visible(false);
+
+                            columns.Template(@<text></text>).Title("<b>Customer<br/> Active? </b>")
+                                            .ClientTemplate("#= getToggleToActivateInactivateCustomer.apply(this, arguments) #");
+                                columns.Template(@<text></text>).Title("Actions").ClientTemplate("#= getActionsInfo.apply(this, arguments) #");
+                            })
+                        .Events(events => events.DataBound("VT.Util.ConnectKendoGrids"))
+                        .NoRecords("No data found.")
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .PageSize(10)
+                        .Model(model => model.Id(p => p.Id))
+                        .Read(read => read.Action("CustomerList", "Customers").Data("onRead")))
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" id="divCustomerDetails">
+    </div>
+</div>
+
+@Html.Partial("ConfirmModal", new ModalViewModal
+{
+    Id = "modal-del-customer-form",
+    IsAlertModel = false,
+    Title = "Deactivate Customer(s)",
+    Message = "Are you sure you want to deactivate the selected Customer(s)?"
+})
+
+@Html.Partial("ConfirmModal", new ModalViewModal
+{
+    Id = "modal-send-email",
+    IsAlertModel = false,
+    Title = "Send Email",
+    Message = "Are you sure you want to send email to this customer?",
+    BtnId = "btnSendEmail"
+})
+
+<div id="customer-services">
+    <!--Load dynamic content through ajax-->
+</div>
+<div id="divImportCustomers">
+    <!--Load dynamic content through ajax-->
+</div>
+
+
+<div id="divAttachments">
+    <!--Load dynamic content through ajax-->
+</div>
+
+@Html.Partial("SaveCustomer", new SaveCustomerViewModel
+{
+    CompanyId = customIdentity.CompanyId != null ? customIdentity.CompanyId.Value : 0
+})
+
+@Html.Partial("ImportCustomers", new ImportCustomerViewModel
+{
+    CompanyId = customIdentity.CompanyId != null ? customIdentity.CompanyId.Value : 0
+})
+
+@Html.Partial("ConfirmModal", new ModalViewModal
+{
+    Id = "modal-activate-cust-form",
+    IsAlertModel = false,
+    Title = "Activate Customer",
+    Message = "Are you sure you want to activate this customer?",
+    HiddenElementId = "hdnActivateCustId",
+    BtnId = "btnActivateCust"
+})
+
+@Html.Partial("ConfirmModal", new ModalViewModal
+{
+    Id = "modal-deactivate-cust-form",
+    IsAlertModel = false,
+    Title = "Deactivate Customer",
+    Message = "Are you sure you want to deactivate this customer?",
+    HiddenElementId = "hdnDeactiveCustId",
+    BtnId = "btnDeactivateCust"
+})
+
+@Html.Partial("ConfirmModal", new ModalViewModal
+{
+    Id = "modal-disable-credicard-form",
+    IsAlertModel = false,
+    Title = "Deactivate Credit Card",
+    Message = "Are you sure you want to deactivate customer's credit card?",
+    HiddenElementId = "hdnDeactiveCreditCardId",
+    BtnId = "btnDeactivateCustomerCreditCard"
+})
+
+@Html.Partial("ConfirmModal", new ModalViewModal
+{
+    Id = "modal-activateCredit-card-form",
+    IsAlertModel = false,
+    Title = "Activate Credit Card",
+    Message = "Are you sure you want to activate customer's credit card?",
+    HiddenElementId = "hdnActivateCreditCardId",
+    BtnId = "btnActivateCustomerCreditCard"
+})
+
+<!--Deactivate customer credit card-->
+@Html.Partial("ConfirmModal", new ModalViewModal
+{
+    Id = "modal-disable-credicard-form",
+    IsAlertModel = false,
+    Title = "Deactivate Credit Card",
+    Message = "Are you sure you want to deactivate customer's credit card?",
+    HiddenElementId = "hdnDeactiveCreditCardId",
+    BtnId = "btnDeactivateCustomerCreditCard"
+})
+
+<!--activate customer credit card form-->
+@Html.Partial("ConfirmModal", new ModalViewModal
+{
+    Id = "modal-activate-credicard-form",
+    IsAlertModel = false,
+    Title = "Activate Credit Card",
+    Message = "Are you sure you want to activate customer's credit card?",
+    HiddenElementId = "hdnActivateCreditCardId",
+    BtnId = "btnActivateCustomerCreditCard"
+})
+
+<!--Trash customer credit card-->
+@Html.Partial("ConfirmModal", new ModalViewModal
+{
+    Id = "modal-trash-credicard-form",
+    IsAlertModel = false,
+    Title = "Delete Credit Card",
+    Message = "Are you sure you want to delete customer's credit card?",
+    HiddenElementId = "hdnTrashCreditCardId",
+    BtnId = "btnTrashCustomerCreditCard"
+})
+
+@Html.Partial("QuickbooksConfirmModal", new ModalViewModal
+{
+    Id = "modal-unlink-customer-form",
+    IsAlertModel = false,
+    Title = "Unlink Customer",
+    Message = "Are you sure you want to unlink this customer?",
+    HiddenElementId = "hdnunlinkCustomerId",
+    BtnId = "btnunlinkCustomer"
+})
+
+@Html.Partial("EditLinkedCustomerPopup", new VT.Services.DTOs.QBEntitiesRequestResponse.SystemCustomerModel
+{
+})
+
+@Html.Partial("EditLinkUnlinkedCustomerPopup", new VT.Services.DTOs.QBEntitiesRequestResponse.SystemCustomerModel1
+{
+})
+
+@Html.Partial("LinkedCustomers", new VT.Services.DTOs.QBEntitiesRequestResponse.CustomerSynchronizationList
+{
+})

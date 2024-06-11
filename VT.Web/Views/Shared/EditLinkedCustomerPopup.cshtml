@@ -1,0 +1,99 @@
+﻿@using VT.Services.DTOs.QBEntitiesRequestResponse
+@model  SystemCustomerModel
+
+<div id="modal-edit-customer-form" class="modal fade" aria-hidden="true" style="z-index:9999 !important;">
+    <div class="modal-dialog modal-md">
+        <form id="saveEditCustomerPopup" action="@Url.Action("UpdateLinkedCustomer", "Quickbooks")"
+              class="form-horizontal"
+              method="POST" role="form">
+            @Html.AntiForgeryToken();
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="modal-edit-customer-title"><b>Edit Customer</b> </h4>
+                    <small class="font-bold"></small>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            @Html.HiddenFor(x => x.CompanyId)
+                            @Html.HiddenFor(x => x.SCCustomerId)
+                            @Html.HiddenFor(x => x.QbCustomerId)
+                            <div class="form-group">
+                                <div class="col-sm-12 text-center">
+                                    <h3><b><span id="matchStatus" style="color:#1ab394;"></span></b></h3>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Name</label>
+                                <div class="col-sm-9">
+                                    @Html.TextBoxFor(x => x.SCName, new { @class = "form-control small", placeholder = "Name" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Address</label>
+                                <div class="col-sm-9">
+                                    @Html.TextBoxFor(x => x.SCAddress, new { @class = "form-control small", placeholder = "Address" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">State</label>
+                                <div class="col-sm-9">
+                                    @Html.DropDownListFor(x => x.SState, ViewData["States"] as IEnumerable<SelectListItem>, new { @class = "form-control small" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Postal Code</label>
+                                <div class="col-sm-9">
+                                    @Html.TextBoxFor(x => x.SCPostalCode, new { @class = "form-control small" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Phone</label>
+                                <div class="col-sm-9">
+                                    @Html.TextBoxFor(x => x.SCPhone, new { @class = "form-control small phone" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Email</label>
+                                <div class="col-sm-9">
+                                    @Html.TextBoxFor(x => x.SCEmail, new { @class = "form-control small" })
+                                </div>
+                            </div>
+                            <div>
+                                <table class="table" style="margin-bottom:0;">
+                                    <thead class="thead-inverse">
+                                        <tr>
+                                            <th width="50%" style="color:#1ab394;padding-left: 50px;"><h3><b>System</b></h3></th>
+                                            <th width="50%" style="color:#1ab394;padding-left: 50px;"><h3><b>Quick Books</b></h3></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr id="tblRow1">
+                                            <td width="50%">
+                                                <table class="table" id="tblSysstemCustomer">
+                                                    <tbody id="tblC1"></tbody>
+                                                </table>
+                                            </td>
+                                            <td width="50%">
+                                                <table class="table" id="tblQBCustomer">
+                                                    <tbody id="tblC2"></tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button id="btneditSaveCustomer" type="submit" class="btn btn-warning">Save</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,204 @@
+﻿@using Kendo.Mvc.UI
+@using VT.Common
+@using VT.Web.Models
+@{
+    ViewBag.Title = "Organizations";
+    Layout = "~/Views/Shared/LoggedInLayout.cshtml";
+}
+
+@section PageLevelStyles
+{
+    @Styles.Render("~/plugins/jasnyBootstrapStyles")
+}
+
+@section PageLevelScripts
+{
+    @Scripts.Render("~/plugins/validate")
+    @Scripts.Render("~/plugins/iCheck")
+    @Scripts.Render("~/plugins/switchery")
+    <script src="@Url.Content("~/Scripts/app/organization.js")"></script>
+
+    <script type="text/javascript">
+        VT.Util.CustomMask("#ServiceFeePercentage", 2);
+ 
+        $('.phone').inputmask({
+            mask: '(999) 999-9999'
+        });
+
+        function getActionsInfo(item) {
+            return [
+                "<a class='edit-org' data-id='" + item.Id + "' href='#dynamicModal'><i class='fa fa-pencil'></i></a> &nbsp;" +
+                " <a class='view-organization' data-id='" + item.Id + "' href='#divOrgDetails' title='View'><i class='fa fa-eye'></i></a> &nbsp;"
+            ].join('');
+        }
+        function getMerchantConfiguredInfo(item) {
+            var link = item.PaymentGatewayType === 1 ? '/ConfigureMerchant/' + item.Id : '/Splash/MerchantSetup/' + item.Id;
+            var html = "<span class='label label-" + item.MerchantConfiguredCss + "'>" + item.MerchantConfiguredText + "</span>";
+            html += "&nbsp;<a href='" + link + "' title='Configure'><i class='fa fa-wrench'></i></a>";
+            return html;
+        }
+
+        function getPaymentConfiguredInfo(item) {
+            var link = item.PaymentGatewayType === 1 ? '/ConfigureCc/' + item.Id : '/Splash/SetupCompanyCreditCard/' + item.Id;
+            var html = "<span class='label label-" + item.PaymentConfiguredCss + "'>" + item.PaymentConfiguredText + "</span>";
+            html += "&nbsp;<a href='" + link + "' title='Configure'><i class='fa fa-wrench'></i></a>";
+            return html;
+        }
+
+        function getActiveInfo(item) {
+            return "<span class='label label-" + item.IsActiveCss + "'>" + item.IsActiveText + "</span>";
+        }
+        // for super administrator.
+        function getToggleSuperAdministrator(item) {
+   
+            if (item.IsActive) {
+                return "<a class='btn-icon-only btn-default org-deactivate' data-id='" + item.Id + "' href='#' data-toggle='tooltip' title='Inactive'><i class='fa fa-toggle-on fa-3x' aria-hidden='true'></i></a> &nbsp;";
+            }
+            else {
+                return "<a class='btn-icon-only btn-default org-activate' data-id='" + item.Id + "' href='#' data-toggle='tooltip' title='Active'><i class='fa fa-toggle-off fa-3x' aria-hidden='true'></i></a> &nbsp;";
+            }
+        }
+        // get company name
+        function getCompanyName(item) {
+           
+            return (item.IsActive != true) ? "<i style=color:red;>" + item.Name + "</i>" : item.Name;
+        }
+
+        function onRead(o) {
+            return {
+                additionalInfo: $("#gridItemStatus").val()
+            };
+        }
+    </script>
+}
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-10">
+        <h2>ORGANIZATIONS</h2>
+    </div>
+    <div class="col-lg-2">
+    </div>
+</div>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>ALL ORGANIZATIONS</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="">
+                        <a href="#modal-add-org-form" data-toggle="modal" class="btn btn-info btn-rounded btn-outline "><i class="fa fa-plus"></i> &nbsp; Add Organization</a>
+                        <a href="#modal-del-org-form" id="btnDeleteOrg" class="btn btn-danger btn-rounded btn-outline"><i class="fa fa-trash"></i> &nbsp; Deactivate Organization(s)</a>
+                    </div>
+                    @Html.Partial("GridHeader", "OrganizationListGrid")
+
+                    @(Html.Kendo().Grid<OrganizationListViewModel>()
+                          .Name("OrganizationListGrid")
+                          .Reorderable(x => x.Columns(true))
+                          .Pageable(page => page
+                              .Info(true)
+                              .ButtonCount(5)
+                              .Messages(message => message
+                                  .Empty("No data")
+                                  .Next("Next")
+                                  .Previous("Previous")
+                                  .First("First")
+                                  .Last("Last")
+                              )
+                          )
+                          .Sortable()
+                          .Filterable()
+                          .Columns(columns =>
+                          {
+                          columns.Bound(x => x.Id).Title("")
+                              .ClientTemplate("<input type='checkbox' value='#= Id #' class='i-checks'></input>").Filterable(false);
+                          //columns.Bound(x => x.Name).Title("Name").ClientTemplate("#= getCompany.apply(this, arguments) #");
+                          columns.Template(@<text></text>).Title("Name").Visible(User.IsInRole(UserRoles.SuperAdmin.ToString()))
+                                                       .ClientTemplate("#= getCompanyName.apply(this, arguments) #");
+                          columns.Bound(x => x.Users).Title("Users");
+                          columns.Bound(x => x.Services).Title("Services");
+                          columns.Bound(x => x.Customers).Title("Customers");
+                          columns.Template(@<text></text>).Title("<b>Active? </b>")
+                                 .ClientTemplate("#= getToggleSuperAdministrator.apply(this, arguments) #");
+                          columns.Bound(x => x.IsActive).Title("Customers").Visible(false);
+                          columns.Template(@<text></text>)
+                                  .Title("Gateway")
+                                  .ClientTemplate("#= getMerchantConfiguredInfo.apply(this, arguments) #");
+
+                          columns.Template(@<text></text>)
+                                  .Title("Credit Card")
+                                  .ClientTemplate("#= getPaymentConfiguredInfo.apply(this, arguments) #");
+
+                              columns.Template(@<text></text>)
+                                  .Title("Is Active")
+                                  .ClientTemplate("#= getActiveInfo.apply(this, arguments) #");
+
+                          columns.Template(@<text></text>).Title("Actions")
+                                  .ClientTemplate("#= getActionsInfo.apply(this, arguments) #");
+
+                          })
+                          .Events(events => events.DataBound("VT.Util.ConnectKendoGrids"))
+                          .NoRecords("No data found.")
+                          .DataSource(dataSource => dataSource
+                              .Ajax()
+                              .PageSize(10)
+                              .Model(model => model.Id(p => p.Id))
+                              .Read(read => read.Action("OrganizationList", "Organizations").Data("onRead")))
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" id="divOrgDetails">
+
+    </div>
+</div>
+
+<div id="divSaveOrgModal">
+
+</div>
+
+@Html.Partial("ConfirmModal", new ModalViewModal
+{
+    Id = "modal-del-org-form",
+    IsAlertModel = false,
+    Title = "Deactivate Organization(s)",
+    Message = "Are you sure you want to deactivate the selected Organization(s)?"
+})
+
+@Html.Partial("ConfirmModal", new ModalViewModal
+{
+    Id = "modal-activate-org-form",
+    IsAlertModel = false,
+    Title = "Activate Organization",
+    Message = "Are you sure you want to activate this organization?",
+    HiddenElementId = "hdnActivateOrgId",
+    BtnId = "btnActivateOrg"
+})
+
+@Html.Partial("ConfirmModal", new ModalViewModal
+{
+    Id = "modal-deactivate-org-form",
+    IsAlertModel = false,
+    Title = "Deactivate Organization",
+    Message = "Are you sure you want to deactivate this organization?",
+    HiddenElementId = "hdnDeactiveOrgId",
+    BtnId = "btnDeactivateOrg"
+})
+
+
+@Html.Partial("SaveOrganization", new SaveOrganizationViewModel
+{
+    ServiceFeePercentage = ApplicationSettings.ServiceFeePercentage
+})
+
+@Html.Partial("AddUser", new SaveUserModel
+{
+  
+})

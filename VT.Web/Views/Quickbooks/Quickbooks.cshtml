@@ -1,0 +1,698 @@
+﻿@model QuickbooksSettingsModel
+
+@{
+    ViewBag.Title = "Quickbooks Settings";
+    Layout = "~/Views/Shared/LoggedInLayout.cshtml";
+}
+
+@section PageLevelStyles{
+    <link href="~/Content/plugins/switchery/switchery.css" rel="stylesheet" />
+}
+
+@section PageLevelScripts{
+    @Scripts.Render("~/plugins/validate")
+    @Scripts.Render("~/plugins/iCheck")
+    <script src="~/Scripts/plugins/switchery/switchery.js"></script>
+    <script src="~/Scripts/app/quikcbooksettings.js"></script>
+    <script type="text/javascript">
+
+        // edit linked customer
+        $(document).on("click", "#link-customers", function () {
+            var buttonText = $(this).html();
+            $(this).attr('disabled', '').html('<i class="fa fa-spinner fa-spin"></i>&nbsp; ' + buttonText);
+            $.ajax({
+                url: '/Quickbooks/ShowLinkedCustomers/',
+                type: "POST",
+                data: {
+                    SystemCustomers: sysCustsArray,
+                    QbCustomers: qbCustsArray
+                },
+                success: function (result) {
+                    if (result.success) {
+                        debugger;
+                        $("#CompanyId1").val(result.customer.CompanyId);
+                        $("#SCCustomerId1").val(result.customer.SCCustomerId);
+                        $("#QbCustomerId1").val(result.customer.QbCustomerId);
+
+                        $("#SCName1").val(result.customer.SCName);
+                        $("#SCAddress1").val(result.customer.SCAddress);
+                        $("#SState1").val(result.customer.SState);
+                        $("#SCPostalCode1").val(result.customer.SCPostalCode);
+                        $("#SCPhone1").val(result.customer.SCPhone);
+                        $("#SCEmail1").val(result.customer.SCEmail);
+                        $("#matchStatus1").text(result.customer.IsMatch ? "Set Customer Data" : "Set Customer Data");
+                        $("#tblSysstemCustomer1 tbody").append(result.systemcustmer);
+                        $("#tblQBCustomer1 tbody").append(result.qbCustomer);
+
+                        if (result.customer.IsMatch) {
+                            $("#tblRow11").addClass("bg-success");
+                            $("#tblC11").addClass("bg-success");
+                            $("#tblC21").addClass("bg-success");
+                        }
+                        else {
+                            $("#tblRow11").addClass("bg-danger");
+                            $("#tblC11").addClass("bg-danger");
+                            $("#tblC21").addClass("bg-danger");
+                        }
+                        $("#link-customers").attr('disabled', null).html(buttonText);
+                        $("#modal-edit-linkUnlinkCustomer-title").html("Linked Customer")
+                        $("#modal-edit-linkUnlinkCustomer-form").modal({
+                            backdrop: 'static',
+                            keyboard: false,
+                            show: true
+                        });
+                    }
+                    else {
+                        VT.Util.HandleLogout(result.message);
+                        VT.Util.Notification(false, result.message);
+                        $("#link-customers").attr('disabled', null).html(buttonText);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    VT.Util.Notification(false, error);
+                }
+            });
+            return false;
+        });
+
+        $(document).on("click", "#btnClose", function () {
+            $("#CustomersSettings").trigger("click");
+        });
+
+        // Customers Sync operations
+        var saveLinkedCustomer = $("#saveEditLinkedCustomerPopup").validate({
+            rules: {
+                SCName1: { required: true },
+                SCAddress1: { required: true },
+                SState1: { required: true },
+                SCPostalCode1: { required: true },
+                SCPhone1: { required: true },
+                SCEmail1: { required: true, email: true },
+            },
+            highlight: function (label) {
+                $(label).closest('.form-group').removeClass('has-success').addClass('has-error');
+            },
+            success: function (label) {
+                $(label).closest('.form-group').removeClass('has-error');
+                label.remove();
+            },
+            errorPlacement: function (error, element) {
+                var placement = element.closest('.input-group');
+                if (!placement.get(0)) {
+                    placement = element;
+                }
+                if (error.text() !== '') {
+                    placement.after(error);
+                }
+            },
+            submitHandler: function (form) {
+                var buttonText = $("#btneditLinkUnlinkedSaveCustomer").html();
+                $("#btneditLinkUnlinkedSaveCustomer").attr('disabled', '').html('<i class="fa fa-spinner fa-spin"></i>&nbsp; ' + buttonText);
+
+                $(form).ajaxSubmit({
+                    success: function (data) {
+                        $("#btneditSaveCustomer").attr('disabled', null).html('Submit');
+                        $("#modal-edit-linkUnlinkCustomer-form").modal("hide");
+                        $("#mainDiv").html(data);
+                        $("#linkedCustomerPanel").show();
+                    },
+                    error: function (xhr, status, error) {
+                        $("#btneditLinkUnlinkedSaveCustomer").attr('disabled', null).html(buttonText);
+                    }
+                });
+                return false;
+            }
+        });
+
+        $("#modal-edit-linkUnlinkCustomer-form").on('hidden.bs.modal', function () {
+            $("#tblC11").empty();
+            $("#tblC21").empty();
+            $("#tblRow11").removeClass("bg-success");
+            $("#tblC11").removeClass("bg-success");
+            $("#tblC21").removeClass("bg-success");
+            $("#tblRow11").removeClass("bg-danger");
+            $("#tblC11").removeClass("bg-danger");
+            $("#tblC21").removeClass("bg-danger");
+            $(".has-error").removeClass("has-error");
+        });
+
+        function toggleChevron(e) {
+            $(e.target)
+            .prev('.panel-heading')
+            .find("i.indicator")
+            .toggleClass('glyphicon-chevron-down-custom glyphicon-chevron-up-custom');
+        }
+        $('#accordion').on('hidden.bs.collapse', toggleChevron);
+        $('#accordion').on('shown.bs.collapse', toggleChevron);
+
+        function remove(array, element) {
+            const index = array.indexOf(element);
+            if (index !== -1) {
+                array.splice(index, 1);
+            }
+        }
+
+        // Customer Synchronization Operations
+        var sysCustsArray = [];
+        var qbCustsArray = [];
+        $(document).on("focus", ".changeColorDiv", function () {
+            var customerId = $(this).data("customerid");
+            var isMatch = $(this).data("ismatch");
+
+            if (isMatch == "True") {
+                $("#divClass-" + customerId).removeClass("bg-success");
+                $("#divClass-" + customerId).css("background-color", '#93d584bd');
+            }
+            else {
+                $("#divClass-" + customerId).removeClass("bg-danger");
+                $("#divClass-" + customerId).css("background-color", '#f07070a6');
+            }
+        });
+
+        $(document).on("focus", ".divsystemCustomers", function () {
+            var customerId = $(this).data("customerid");
+            if (sysCustsArray.length < 1) {
+                if ($("#divSystemCustomer-" + customerId).hasClass("bg-primary")) {
+                    $("#divSystemCustomer-" + customerId).removeClass("bg-primary");
+                    $("#divSystemCustomer-" + customerId).addClass("badge-warning-light");
+                    remove(sysCustsArray, customerId);
+                }
+                else {
+                    $("#divSystemCustomer-" + customerId).removeClass("badge-warning-light");
+                    $("#divSystemCustomer-" + customerId).addClass("bg-primary");
+                    sysCustsArray.push(customerId);
+                    sysCustsArray.toString();
+
+                    if ($(".divsystemSelected").hasClass("bg-primary")) {
+                        $(".divsystemSelected").removeClass("bg-primary");
+                        $(".divsystemSelected").addClass("alert-info");
+                    }
+                }
+            }
+            else {
+                var id = sysCustsArray[0];
+                if (id == customerId) {
+                    $("#divSystemCustomer-" + customerId).removeClass("bg-primary");
+                    $("#divSystemCustomer-" + customerId).addClass("badge-warning-light");
+                }
+                else {
+                    $("#divSystemCustomer-" + customerId).removeClass("badge-warning-light");
+                    $("#divSystemCustomer-" + customerId).addClass("bg-primary");
+                    sysCustsArray.push(customerId);
+                    sysCustsArray.toString();
+                }
+                for (i = 0; i < sysCustsArray.length; i++) {
+                    $("#divSystemCustomer-" + sysCustsArray[i]).removeClass("bg-primary");
+                    $("#divSystemCustomer-" + sysCustsArray[i]).addClass("badge-warning-light");
+                    remove(sysCustsArray, sysCustsArray[i]);
+                }
+            }
+            if ($(".divsbSelected").hasClass("bg-primary") && sysCustsArray.length == 1) {
+                $("#link-customers").show();
+            }
+            else {
+                $("#link-customers").hide();
+            }
+            if ($(".divsbSelected").hasClass("bg-primary") && $(".divsystemSelected").hasClass("bg-primary")) {
+                $("#link-customers").hide();
+            }
+
+            if (sysCustsArray.length == 1 && qbCustsArray.length == 1) {
+                $("#link-customers").show();
+            }
+        });
+
+        $(document).on("focus", ".divqbcustomers", function () {
+            var customerId = $(this).data("customerid");
+            if (qbCustsArray.length < 1) {
+                if ($("#divqbCustomer-" + customerId).hasClass("bg-primary")) {
+                    $("#divqbCustomer-" + customerId).removeClass("bg-primary");
+                    $("#divqbCustomer-" + customerId).addClass("badge-warning-light");
+                    remove(qbCustsArray, customerId);
+                }
+                else {
+                    $("#divqbCustomer-" + customerId).removeClass("badge-warning-light");
+                    $("#divqbCustomer-" + customerId).addClass("bg-primary");
+                    qbCustsArray.push(customerId);
+                    qbCustsArray.toString();
+
+                    if ($(".divsbSelected").hasClass("bg-primary")) {
+                        $(".divsbSelected").removeClass("bg-primary");
+                        $(".divsbSelected").addClass("alert-info");
+                    }
+                }
+            }
+            else {
+                var id = qbCustsArray[0];
+                if (id == customerId) {
+                    $("#divqbCustomer-" + customerId).removeClass("bg-primary");
+                    $("#divqbCustomer-" + customerId).addClass("badge-warning-light");
+                }
+                else {
+                    $("#divqbCustomer-" + customerId).removeClass("badge-warning-light");
+                    $("#divqbCustomer-" + customerId).addClass("bg-primary");
+                    qbCustsArray.push(customerId);
+                    qbCustsArray.toString();
+                }
+                for (i = 0; i < qbCustsArray.length; i++) {
+                    $("#divqbCustomer-" + qbCustsArray[i]).removeClass("bg-primary");
+                    $("#divqbCustomer-" + qbCustsArray[i]).addClass("badge-warning-light");
+                    remove(qbCustsArray, qbCustsArray[i]);
+                }
+            }
+
+            if ($(".divsystemSelected").hasClass("bg-primary") && qbCustsArray.length == 1) {
+                $("#link-customers").show();
+            }
+            else {
+                $("#link-customers").hide();
+            }
+
+            if ($(".divsbSelected").hasClass("bg-primary") && $(".divsystemSelected").hasClass("bg-primary")) {
+                $("#link-customers").hide();
+            }
+            if (sysCustsArray.length == 1 && qbCustsArray.length == 1) {
+                $("#link-customers").show();
+            }
+        });
+
+        $(document).on("focus", ".divsystemSelected", function () {
+
+            if ($(".divsystemSelected").hasClass("alert-info")) {
+                $(".divsystemSelected").removeClass("alert-info");
+                $(".divsystemSelected").addClass("bg-primary");
+
+                for (i = 0; i < sysCustsArray.length; i++) {
+                    $("#divSystemCustomer-" + sysCustsArray[i]).removeClass("bg-primary");
+                    $("#divSystemCustomer-" + sysCustsArray[i]).addClass("badge-warning-light");
+                    remove(sysCustsArray, sysCustsArray[i]);
+                }
+            }
+            else {
+                $(".divsystemSelected").removeClass("bg-primary");
+                $(".divsystemSelected").addClass("alert-info");
+            }
+            if ($(".divsystemSelected").hasClass("bg-primary") && qbCustsArray.length == 1) {
+                $("#link-customers").show();
+            }
+            else {
+                $("#link-customers").hide();
+            }
+        });
+
+        $(document).on("focus", ".divsbSelected", function () {
+
+            if ($(".divsbSelected").hasClass("alert-info")) {
+                $(".divsbSelected").removeClass("alert-info");
+                $(".divsbSelected").addClass("bg-primary");
+
+                for (i = 0; i < qbCustsArray.length; i++) {
+                    $("#divqbCustomer-" + qbCustsArray[i]).removeClass("bg-primary");
+                    $("#divqbCustomer-" + qbCustsArray[i]).addClass("badge-warning-light");
+                    remove(qbCustsArray, qbCustsArray[i]);
+                }
+            }
+            else {
+                $(".divsbSelected").removeClass("bg-primary");
+                $(".divsbSelected").addClass("alert-info");
+            }
+
+            if ($(".divsbSelected").hasClass("bg-primary") && sysCustsArray.length == 1) {
+                $("#link-customers").show();
+            }
+            else {
+                $("#link-customers").hide();
+            }
+        });
+
+        // Employees Synchronization Operations
+        var sysEmplArray = [];
+        var qbEmpArray = [];
+
+        $(document).on("click", "#btnEmployeeClose", function () {
+            $("#EmployeesSettings").trigger("click");
+        });
+
+        $(document).on("focus", ".changeEmployeeColorDiv", function () {
+            var employeeId = $(this).data("employeeid");
+            var isMatch = $(this).data("ismatch");
+
+            if (isMatch == "True") {
+                $("#divClassEmployee-" + employeeId).removeClass("bg-success");
+                $("#divClassEmployee-" + employeeId).css("background-color", '#93d584bd');
+            }
+            else {
+                $("#divClassEmployee-" + employeeId).removeClass("bg-danger");
+                $("#divClassEmployee-" + employeeId).css("background-color", '#f07070a6');
+            }
+        });
+
+        $(document).on("focus", ".divsystemEmployees", function () {
+            debugger;
+            var employeeId = $(this).data("employeeid");
+            if (sysEmplArray.length < 1) {
+                if ($("#divSystemEmployee-" + employeeId).hasClass("bg-primary")) {
+                    $("#divSystemEmployee-" + employeeId).removeClass("bg-primary");
+                    $("#divSystemEmployee-" + employeeId).addClass("badge-warning-light");
+                    remove(sysEmplArray, employeeId);
+                }
+                else {
+                    $("#divSystemEmployee-" + employeeId).removeClass("badge-warning-light");
+                    $("#divSystemEmployee-" + employeeId).addClass("bg-primary");
+                    sysEmplArray.push(employeeId);
+                    sysEmplArray.toString();
+
+                    if ($(".divEmployeeSelected").hasClass("bg-primary")) {
+                        $(".divEmployeeSelected").removeClass("bg-primary");
+                        $(".divEmployeeSelected").addClass("alert-info");
+                    }
+                }
+            }
+            else {
+                var id = sysEmplArray[0];
+                if (id == employeeId) {
+                    $("#divSystemEmployee-" + employeeId).removeClass("bg-primary");
+                    $("#divSystemEmployee-" + employeeId).addClass("badge-warning-light");
+                }
+                else {
+                    $("#divSystemEmployee-" + employeeId).removeClass("badge-warning-light");
+                    $("#divSystemEmployee-" + employeeId).addClass("bg-primary");
+                    sysEmplArray.push(employeeId);
+                    sysEmplArray.toString();
+                }
+                for (var i = 0; i < sysEmplArray.length; i++) {
+                    $("#divSystemEmployee-" + sysEmplArray[i]).removeClass("bg-primary");
+                    $("#divSystemEmployee-" + sysEmplArray[i]).addClass("badge-warning-light");
+                    remove(sysEmplArray, sysEmplArray[i]);
+                }
+            }
+            if ($(".divEmployeeqbSelected").hasClass("bg-primary") && sysEmplArray.length == 1) {
+                $("#btnLinkEmployees").show();
+            }
+            else {
+                $("#btnLinkEmployees").hide();
+            }
+            if ($(".divEmployeeqbSelected").hasClass("bg-primary") && $(".divEmployeeSelected").hasClass("bg-primary")) {
+                $("#btnLinkEmployees").hide();
+            }
+            if (sysEmplArray.length == 1 && qbEmpArray.length == 1) {
+                $("#btnLinkEmployees").show();
+            }
+        });
+
+        $(document).on("focus", ".divqbEmployees", function () {
+            var employeeId = $(this).data("employeeid");
+            if (qbEmpArray.length < 1) {
+                if ($("#divqbEmployee-" + employeeId).hasClass("bg-primary")) {
+                    $("#divqbEmployee-" + employeeId).removeClass("bg-primary");
+                    $("#divqbEmployee-" + employeeId).addClass("badge-warning-light");
+                    remove(qbEmpArray, employeeId);
+                }
+                else {
+                    $("#divqbEmployee-" + employeeId).removeClass("badge-warning-light");
+                    $("#divqbEmployee-" + employeeId).addClass("bg-primary");
+                    qbEmpArray.push(employeeId);
+                    qbEmpArray.toString();
+                    if ($(".divEmployeeqbSelected").hasClass("bg-primary")) {
+                        $(".divEmployeeqbSelected").removeClass("bg-primary");
+                        $(".divEmployeeqbSelected").addClass("alert-info");
+                    }
+                }
+            }
+            else {
+                var id = qbEmpArray[0];
+                if (id == employeeId) {
+                    $("#divqbEmployee-" + employeeId).removeClass("bg-primary");
+                    $("#divqbEmployee-" + employeeId).addClass("badge-warning-light");
+                }
+                else {
+                    $("#divqbEmployee-" + employeeId).removeClass("badge-warning-light");
+                    $("#divqbEmployee-" + employeeId).addClass("bg-primary");
+                    qbEmpArray.push(employeeId);
+                    qbEmpArray.toString();
+                }
+                for (i = 0; i < qbEmpArray.length; i++) {
+                    $("#divqbEmployee-" + qbEmpArray[i]).removeClass("bg-primary");
+                    $("#divqbEmployee-" + qbEmpArray[i]).addClass("badge-warning-light");
+                    remove(qbEmpArray, qbEmpArray[i]);
+                }
+            }
+
+            if ($(".divEmployeeSelected").hasClass("bg-primary") && qbEmpArray.length == 1) {
+                $("#btnLinkEmployees").show();
+            }
+            else {
+                $("#btnLinkEmployees").hide();
+            }
+            if ($(".divEmployeeqbSelected").hasClass("bg-primary") && $(".divEmployeeSelected").hasClass("bg-primary")) {
+                $("#btnLinkEmployees").hide();
+            }
+            if (sysEmplArray.length == 1 && qbEmpArray.length == 1) {
+                $("#btnLinkEmployees").show();
+            }
+        });
+
+        $(document).on("focus", ".divEmployeeSelected", function () {
+
+            if ($(".divEmployeeSelected").hasClass("alert-info")) {
+                $(".divEmployeeSelected").removeClass("alert-info");
+                $(".divEmployeeSelected").addClass("bg-primary");
+
+                for (i = 0; i < sysEmplArray.length; i++) {
+                    $("#divSystemEmployee-" + sysEmplArray[i]).removeClass("bg-primary");
+                    $("#divSystemEmployee-" + sysEmplArray[i]).addClass("badge-warning-light");
+                    remove(sysEmplArray, sysEmplArray[i]);
+                }
+            }
+            else {
+                $(".divEmployeeSelected").removeClass("bg-primary");
+                $(".divEmployeeSelected").addClass("alert-info");
+            }
+            if ($(".divEmployeeSelected").hasClass("bg-primary") && qbEmpArray.length == 1) {
+                $("#btnLinkEmployees").show();
+            }
+            else {
+                $("#btnLinkEmployees").hide();
+            }
+        });
+
+        $(document).on("focus", ".divEmployeeqbSelected", function () {
+            if ($(".divEmployeeqbSelected").hasClass("alert-info")) {
+                $(".divEmployeeqbSelected").removeClass("alert-info");
+                $(".divEmployeeqbSelected").addClass("bg-primary");
+
+                for (i = 0; i < qbEmpArray.length; i++) {
+                    $("#divqbEmployee-" + qbEmpArray[i]).removeClass("bg-primary");
+                    $("#divqbEmployee-" + qbEmpArray[i]).addClass("badge-warning-light");
+                    remove(qbEmpArray, qbEmpArray[i]);
+                }
+            }
+            else {
+                $(".divEmployeeqbSelected").removeClass("bg-primary");
+                $(".divEmployeeqbSelected").addClass("alert-info");
+            }
+            if ($(".divEmployeeqbSelected").hasClass("bg-primary") && sysEmplArray.length == 1) {
+                $("#btnLinkEmployees").show();
+            }
+            else {
+                $("#btnLinkEmployees").hide();
+            }
+        });
+
+        // basic
+        var saveLinkedEmployee = $("#saveEditLinkedEmployeePopup").validate({
+            rules: {
+                GivenName1: { required: true },
+                FamilyName1: { required: true },
+                Email1: { required: true },
+            },
+            highlight: function (label) {
+                $(label).closest('.form-group').removeClass('has-success').addClass('has-error');
+            },
+            success: function (label) {
+                $(label).closest('.form-group').removeClass('has-error');
+                label.remove();
+            },
+            errorPlacement: function (error, element) {
+                var placement = element.closest('.input-group');
+                if (!placement.get(0)) {
+                    placement = element;
+                }
+                if (error.text() !== '') {
+                    placement.after(error);
+                }
+            },
+            submitHandler: function (form) {
+                var buttonText = $("#btneditLinkUnlinkedSaveEmployee").html();
+                $("#btneditLinkUnlinkedSaveEmployee").attr('disabled', '').html('<i class="fa fa-spinner fa-spin"></i>&nbsp; ' + buttonText);
+
+                $(form).ajaxSubmit({
+                    success: function (data) {
+                        debugger;
+                        $("#btneditLinkUnlinkedSaveEmployee").attr('disabled', null).html('Submit');
+                        $("#modal-edit-linkUnlinkEmployee-form").modal("hide");
+                        $("#mainEmployeeDiv").html(data);
+                        $("#linkedemployeespanel").show();
+                    },
+                    error: function (xhr, status, error) {
+                        $("#btneditLinkUnlinkedSaveEmployee").attr('disabled', null).html(buttonText);
+                    }
+                });
+                return false;
+            }
+        });
+
+        $("#modal-edit-linkUnlinkEmployee-form").on('hidden.bs.modal', function () {
+            $("#tblC11E").empty();
+            $("#tblC21E").empty();
+            $("#tblRow11E").removeClass("bg-success");
+            $("#tblC11E").removeClass("bg-success");
+            $("#tblC21E").removeClass("bg-success");
+            $("#tblRow11E").removeClass("bg-danger");
+            $("#tblC11E").removeClass("bg-danger");
+            $("#tblC21E").removeClass("bg-danger");
+            $(".has-error").removeClass("has-error");
+        });
+
+        // edit linked employee
+        $(document).on("click", "#btnLinkEmployees", function () {
+            debugger;
+            var buttonText = $(this).html();
+            $(this).attr('disabled', '').html('<i class="fa fa-spinner fa-spin"></i>&nbsp; ' + buttonText);
+            $.ajax({
+                url: '/Quickbooks/ShowLinkedEmployees/',
+                type: "POST",
+                data: {
+                    SystemEmployees: sysEmplArray,
+                    QbEmployees: qbEmpArray
+                },
+                success: function (result) {
+                    if (result.success) {
+                        debugger;
+                        $("#CompanyId1").val(result.employee.CompanyId);
+                        $("#EmployeeId1").val(result.employee.EmployeeId);
+                        $("#QBEmployeeId1").val(result.employee.QBEmployeeId);
+
+                        $("#GivenName1").val(result.employee.GivenName);
+                        $("#FamilyName1").val(result.employee.FamilyName);
+                        $("#Email1").val(result.employee.Email);
+                        $("#matchStatus1").text(result.employee.IsMatch ? "Set Employee Data" : "Set Employee Data");
+                        $("#tblSysstemEmployee1 tbody").append(result.systememployee);
+                        $("#tblQBEmployee1 tbody").append(result.qbEmployee);
+
+                        if (result.employee.IsMatch) {
+                            $("#tblRow11E").addClass("bg-success");
+                            $("#tblC11E").addClass("bg-success");
+                            $("#tblC21E").addClass("bg-success");
+                        }
+                        else {
+                            $("#tblRow11E").addClass("bg-danger");
+                            $("#tblC11E").addClass("bg-danger");
+                            $("#tblC21E").addClass("bg-danger");
+                        }
+                        $("#btnLinkEmployees").attr('disabled', null).html(buttonText);
+                        $("#modal-edit-linkUnlinkEmployee-title").html("Linked Employee")
+                        $("#modal-edit-linkUnlinkEmployee-form").modal({
+                            backdrop: 'static',
+                            keyboard: false,
+                            show: true
+                        });
+                        sysEmplArray.length = 0;
+                        qbEmpArray.length = 0;
+                        $("#btnLinkEmployees").hide();
+                    }
+                    else {
+                        VT.Util.HandleLogout(result.message);
+                        VT.Util.Notification(false, result.message);
+                        $("#btnLinkEmployees").attr('disabled', null).html(buttonText);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    VT.Util.Notification(false, error);
+                }
+            });
+            return false;
+        });
+
+        $("#modal-edit-linkUnlinkEmployee-form").on('hidden.bs.modal', function () {
+            $("#tblC11").empty();
+            $("#tblC21").empty();
+            $("#tblRow11E").removeClass("bg-success");
+            $("#tblC11E").removeClass("bg-success");
+            $("#tblC21E").removeClass("bg-success");
+
+            $("#tblRow11E").removeClass("bg-danger");
+            $("#tblC11E").removeClass("bg-danger");
+            $("#tblC21E").removeClass("bg-danger");
+            $(".has-error").removeClass("has-error");
+        });
+
+    </script>
+}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h3><label style="color:#1ab394;"><b>QUICK BOOKS ONLINE INTEGRATION</b></label></h3>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="hr-line-dashed"></div>
+                        <div class="col-lg-12">
+                            @Html.Partial("QuickbookSettings", Model)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Customer Synchronization Modals -->
+@Html.Partial("QuickbooksConfirmModal", new ModalViewModal
+{
+    Id = "modal-unlink-customer-form",
+    IsAlertModel = false,
+    Title = "Unlink Customer",
+    Message = "Are you sure you want to unlink this customer?",
+    HiddenElementId = "hdnunlinkCustomerId",
+    BtnId = "btnunlinkCustomer",
+})
+@Html.Partial("EditLinkedCustomerPopup", new VT.Services.DTOs.QBEntitiesRequestResponse.SystemCustomerModel { })
+@Html.Partial("EditLinkUnlinkedCustomerPopup", new VT.Services.DTOs.QBEntitiesRequestResponse.SystemCustomerModel1 { })
+@Html.Partial("LinkedCustomers", new VT.Services.DTOs.QBEntitiesRequestResponse.CustomerSynchronizationList { })
+
+<!-- Employee Synchronization Modals -->
+@Html.Partial("EmployeeConfirmModal", new EmployeeViewModal
+{
+    Id = "modal-unlink-employee-form",
+    IsAlertModel = false,
+    Title = "Unlink Employee",
+    Message = "Are you sure you want to unlink this employee?",
+    HiddenElementId = "hdnunlinkEmployeeId",
+    BtnId = "btnunlinkEmployee",
+})
+
+@Html.Partial("EditLinkedEmployeePopup", new VT.Services.DTOs.SystemEmployeeModel { })
+@Html.Partial("EditLinkUnlinkedEmployeePopup", new VT.Services.DTOs.SystemEmployeeModel1 { })
+@Html.Partial("LinkedEmployees", new VT.Services.DTOs.EmployeeSynchronizationList { })
+
+<!-- Service Synchronization Modals -->
+@Html.Partial("ServiceConfirmModal", new ServiceViewModal
+{
+    Id = "modal-unlink-service-form",
+    IsAlertModel = false,
+    Title = "Unlink Service",
+    Message = "Are you sure you want to unlink this service?",
+    HiddenElementId = "hdnunlinkServiceId",
+    BtnId = "btnunlinkService",
+})
+
+@Html.Partial("EditLinkedServicePopup", new VT.Services.DTOs.QBEntitiesRequestResponse.SystemServiceModel { })
+@Html.Partial("EditLinkUnlinkedServicePopup", new VT.Services.DTOs.QBEntitiesRequestResponse.SystemServiceModel1 { })
+@Html.Partial("LinkedServices", new VT.Services.DTOs.QBEntitiesRequestResponse.ServiceSynchronizationList { })

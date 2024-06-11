@@ -1,0 +1,264 @@
+﻿@using VT.Web.Models
+@model VT.Web.Models.SplashCustomerModel
+
+@{
+    ViewBag.Title = "Splash";
+    Layout = "~/Views/Shared/LoggedInLayout.cshtml";
+}
+
+@section PageLevelScripts{
+
+    @Scripts.Render("~/plugins/validate")
+    <script src="@Url.Content("~/Scripts/app/splash-edit-customer.js")"></script>
+}
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-10">
+        <h2>Credit Card Information</h2>
+    </div>
+    <div class="col-lg-2">
+    </div>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Merchant Payment Details</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="panel blank-panel">
+                                <div class="panel-heading">
+                                    <div class="panel-title m-b-md"><h4>Edit CUSTOMER INFORMATION</h4></div>
+                                </div>
+
+                                <div class="panel-body">
+                                    <div class="tab-content">
+                                        <div class="">
+                                            <form id="customerDetailForm" action="@Url.Action("SaveCustomerDetail", "Splash")" class="form-horizontal" method="POST" role="form">
+                                                <div class="row">
+                                                    <div class="col-lg-5 col-lg-offset-3">
+                                                        @Html.HiddenFor(x => x.CompanyId)
+                                                        @Html.HiddenFor(x => x.CustomerId)
+                                                        @Html.HiddenFor(x => x.IsCustomerMode)
+                                                        <div class="form-group merchant-p">
+                                                            <label class="col-sm-3 control-label">First Name</label>
+                                                            <div class="col-sm-9">
+                                                                @Html.TextBoxFor(x => x.CustomerFirstName, new { @class = "form-control small" })
+                                                            </div>
+                                                        </div>
+                                                        <div class=""></div>
+                                                        <div class="form-group merchant-p">
+                                                            <label class="col-sm-3 control-label">Last Name</label>
+                                                            <div class="col-sm-9">
+                                                                @Html.TextBoxFor(x => x.CustomerLastName, new { @class = "form-control small" })
+                                                            </div>
+                                                        </div>
+                                                        <div class=""></div>
+                                                        <div class="form-group merchant-p">
+                                                            <label class="col-sm-3 control-label">Email</label>
+                                                            <div class="col-sm-9">
+                                                                @Html.TextBoxFor(x => x.CustomerEmail, new { @class = "form-control small" })
+                                                            </div>
+                                                        </div>
+                                                        <div class=""></div>
+
+                                                        @if (!string.IsNullOrEmpty(Model.PaymentInactive) && Model.PaymentInactive == "1")
+                                                        {
+                                                            <a data-toggle="modal" href="#modal-add-payment-form" id="btnAddPayment" class="btn btn-info btn-rounded btn-outline "><i class="fa fa-plus"></i> &nbsp; Add</a>
+                                                        }
+                                                        <div class=""></div>
+                                                        <div class="form-group merchant-p">
+                                                            <label class="col-sm-3 control-label" for="card-number">Card Number</label>
+                                                            <div class="col-sm-9">
+                                                                @Html.TextBoxFor(x => x.PaymentNumber, new { @class = "form-control small" })
+                                                            </div>
+                                                            <div class="col-sm-9" id="card-number"></div>
+                                                        </div>
+                                                        <div class=""></div>
+                                                        <div class="form-group merchant-p">
+                                                            <label class="col-sm-3 control-label" for="cvv">CVV</label>
+                                                            <div class="col-sm-9">
+                                                                @Html.TextBoxFor(x => x.PaymentCvv, new { @class = "form-control small" })
+                                                            </div>
+                                                            <div class="col-sm-9" id="cvv"></div>
+                                                        </div>
+                                                        <div class=""></div>
+                                                        <div class="form-group merchant-p">
+                                                            <label class="col-sm-3 control-label">Payment Method</label>
+                                                            <div class="col-sm-9">
+                                                                @Html.DropDownListFor(x => x.PaymentMethod, ViewData["PaymentMethod"] as IEnumerable<SelectListItem>, new { @class = "form-control" })
+                                                            </div>
+                                                        </div>
+                                                        <div class=""></div>
+                                                        <div class="form-group merchant-p">
+                                                            <div class="col-lg-12">
+                                                                <div class="row">
+                                                                    <label class="col-sm-3 control-label" for="expiration-date">Expiration</label>
+                                                                    <div class="col-sm-4">
+                                                                        @Html.DropDownListFor(x => x.Month, ViewData["MonthsList"] as IEnumerable<SelectListItem>, new { @class = "form-control" })
+                                                                    </div>
+                                                                    <div class="col-sm-5">
+                                                                        @Html.DropDownListFor(x => x.Year, ViewData["YearsList"] as IEnumerable<SelectListItem>, new { @class = "form-control" })
+                                                                    </div>
+
+                                                                    <!--<div class="col-sm-2" id="expiration-date"></div>-->
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                        <div class="modal-footer" style="border:none">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                            <button id="btnSaveCustomerDetail" type="submit" class="btn btn-warning">Submit</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

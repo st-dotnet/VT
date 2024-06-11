@@ -1,0 +1,32 @@
+﻿@model VT.Services.DTOs.QBEntitiesRequestResponse.CustomerSynchronizationList
+
+<div id="modal-sync-cutomers-form" class="modal fade" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="saveLinkedCustomerForm" action="@Url.Action("UpdateLinkedCustomer", "Quickbooks")"
+              class="form-horizontal"
+              method="POST" role="form">
+            @Html.AntiForgeryToken();
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" style="text-align: center;" id="modal-sync-cutomers-title">
+                        <b>
+                            Synchronized Customers
+                        </b>
+                    </h4>
+                    <small class="font-bold"></small>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div id="mainDiv" style="text-align:center;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

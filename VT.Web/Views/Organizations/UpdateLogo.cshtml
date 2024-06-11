@@ -1,0 +1,67 @@
+﻿@model VT.Web.Models.GatewayCustomerViewModel
+@{
+    ViewBag.Title = "SaveCustomer";
+    Layout = "~/Views/Shared/LoggedInLayout.cshtml";
+    var id = ViewBag.Id;
+    var imageUrl = ViewBag.ImageUrl;
+    var ImageUrl = string.Empty;
+    var imageChanged = Session["ImageUrl"];
+}
+
+@section PageLevelScripts
+{
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.14.min.js"></script>
+    @Scripts.Render("~/plugins/validate")
+    <script src="~/Scripts/plugins/canvasresize-1.2.0/jquery.exif.js"></script>
+    <script src="~/Scripts/plugins/canvasresize-1.2.0/jquery.canvasResize.js"></script>
+    <script src="~/Scripts/plugins/canvasresize-1.2.0/canvasResize.js"></script>
+    <script src="@Url.Content("~/Scripts/app/imageupload.js")"></script>
+    @*<script type="text/javascript">
+            $("#imgInp").change(function () {
+                readURL(this);
+            });
+            function readURL(input) {
+                if (input.files && input.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        $('#blah').attr('src', e.target.result);
+                    }
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+        </script>*@
+}
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-10">
+        <h2>Upload Company Logo</h2>
+    </div>
+    <div class="col-lg-2">
+    </div>
+</div>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    @*<h5></h5>*@
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <input type="hidden" name="CompanyId" id="CompanyId" value="@id" />
+                    <form class="image_uploaded" action="" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="bucketImageUrl" id="bucketImageUrl" value="" />
+                        <div class="image-area">
+                            <img id="blah"  src="@(imageChanged!=null?imageChanged:imageUrl!=null? imageUrl:"/Content/user.png")" alt="Please select company logo." />
+                        </div>
+                        <input type="file" name="photo" id="photo" style="margin-bottom:20px;" />
+                        <input type="submit" value="Save Image" style="display:none;" id="save-image" class="input-uplaoed btn btn-info btn-rounded btn-outline" />
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,8 @@
+﻿@model VT.Web.Models.FooterViewModel
+<div class="row">
+    <div class="footer">
+        <div>
+            &copy; @(DateTime.UtcNow.Year) Agil Solutions &nbsp;  Last Modified: @(File.GetLastWriteTimeUtc(ViewContext.Controller.GetType().Assembly.Location)) &nbsp; Version Information @(ViewContext.Controller.GetType().Assembly.GetName().Version)
+        </div>
+    </div>
+</div>
